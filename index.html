@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Planner — Franklin Covey Style</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="planner">
+        <!-- Rollover notification -->
+        <div id="notification" class="notification hidden">
+            <span id="notification-text"></span>
+            <button id="notification-close" class="notification-close">&times;</button>
+        </div>
+
+        <!-- Date navigation header -->
+        <header class="date-header">
+            <button id="prev-day" class="nav-btn" title="Previous day">&larr;</button>
+            <div class="date-display">
+                <h1 id="current-date-label">Loading...</h1>
+                <span id="date-badge" class="date-badge hidden"></span>
+                <input type="date" id="date-picker" class="date-picker-hidden">
+            </div>
+            <button id="next-day" class="nav-btn" title="Next day">&rarr;</button>
+            <button id="go-today" class="today-btn" title="Go to today">Today</button>
+        </header>
+
+        <!-- Task summary -->
+        <div id="task-summary" class="task-summary"></div>
+
+        <!-- Task list -->
+        <div class="task-section">
+            <div class="task-list-header">
+                <span class="col-priority">Pri</span>
+                <span class="col-number">#</span>
+                <span class="col-task">Task</span>
+                <span class="col-actions">Status</span>
+            </div>
+            <div id="task-list" class="task-list"></div>
+
+            <!-- Add task form -->
+            <form id="add-task-form" class="add-task-form">
+                <select id="new-task-priority" class="priority-select" title="Priority">
+                    <option value="A">A — Vital</option>
+                    <option value="B">B — Important</option>
+                    <option value="C">C — Nice to do</option>
+                </select>
+                <input type="text" id="new-task-text" class="task-input" placeholder="Add a new task..." required>
+                <button type="submit" class="add-btn">+ Add</button>
+            </form>
+        </div>
+
+        <!-- Daily notes -->
+        <div class="notes-section">
+            <label for="daily-notes" class="notes-label">Notes</label>
+            <textarea id="daily-notes" class="notes-textarea" placeholder="Daily notes, appointments, thoughts..."></textarea>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
