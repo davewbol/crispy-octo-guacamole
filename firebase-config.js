@@ -11,12 +11,6 @@
  * 7. Set Firestore rules (see firestore.rules file in this project)
  */
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAVR2y3mNdJ8zSNxf_WPmKGmYQuoVuyYVc",
   authDomain: "daily-planner-17bef.firebaseapp.com",
@@ -25,6 +19,3 @@ const firebaseConfig = {
   messagingSenderId: "484037431581",
   appId: "1:484037431581:web:ef2ac415ccc5ec4d7611f4"
 };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
