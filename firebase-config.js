@@ -11,14 +11,17 @@
  * 7. Set Firestore rules (see firestore.rules file in this project)
  */
 
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAVR2y3mNdJ8zSNxf_WPmKGmYQuoVuyYVc",
+  authDomain: "daily-planner-17bef.firebaseapp.com",
+  projectId: "daily-planner-17bef",
+  storageBucket: "daily-planner-17bef.firebasestorage.app",
+  messagingSenderId: "484037431581",
+  appId: "1:484037431581:web:ef2ac415ccc5ec4d7611f4"
+};
