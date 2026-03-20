@@ -7,6 +7,20 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Auth bar -->
+    <div class="auth-bar">
+        <div class="auth-bar-inner">
+            <div id="auth-status" class="auth-status">
+                <span id="sync-indicator" class="sync-indicator" title="Not signed in">&#9679;</span>
+                <span id="auth-label">Offline mode</span>
+            </div>
+            <div id="auth-actions">
+                <button id="sign-in-btn" class="auth-btn sign-in-btn">Sign in with Google</button>
+                <button id="sign-out-btn" class="auth-btn sign-out-btn hidden">Sign out</button>
+            </div>
+        </div>
+    </div>
+
     <div class="planner">
         <!-- Rollover notification -->
         <div id="notification" class="notification hidden">
@@ -57,6 +71,14 @@
             <textarea id="daily-notes" class="notes-textarea" placeholder="Daily notes, appointments, thoughts..."></textarea>
         </div>
     </div>
+
+    <!-- Firebase SDK (compat mode for simplicity — no build step needed) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase config — REPLACE with your own project config -->
+    <script src="firebase-config.js"></script>
 
     <script src="app.js"></script>
 </body>

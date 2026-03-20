@@ -13,6 +13,79 @@ body {
     padding: 20px 12px;
 }
 
+/* === Auth Bar === */
+.auth-bar {
+    max-width: 700px;
+    margin: 0 auto 8px;
+}
+
+.auth-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #777;
+}
+
+.auth-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sync-indicator {
+    font-size: 10px;
+    transition: color 0.3s;
+}
+
+.sync-indicator.sync-offline { color: #bbb; }
+.sync-indicator.sync-syncing { color: #f39c12; animation: pulse 1s infinite; }
+.sync-indicator.sync-synced { color: #27ae60; }
+.sync-indicator.sync-error { color: #e74c3c; }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+#auth-label {
+    color: #888;
+}
+
+.auth-btn {
+    border: 1px solid #d4cfc4;
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.sign-in-btn {
+    background: #fff;
+    color: #555;
+}
+
+.sign-in-btn:hover {
+    background: #f5f0e8;
+}
+
+.sign-out-btn {
+    background: #fff;
+    color: #999;
+}
+
+.sign-out-btn:hover {
+    background: #fdf0ed;
+    color: #c0392b;
+}
+
+.hidden {
+    display: none !important;
+}
+
 /* === Planner Container === */
 .planner {
     max-width: 700px;
@@ -37,9 +110,7 @@ body {
     transition: opacity 0.3s ease;
 }
 
-.notification.hidden {
-    display: none;
-}
+
 
 .notification-close {
     background: none;
@@ -102,9 +173,7 @@ body {
     color: #1565c0;
 }
 
-.date-badge.hidden {
-    display: none;
-}
+
 
 .date-picker-hidden {
     position: absolute;
@@ -391,7 +460,7 @@ body {
     border-color: #f39c12;
 }
 
-.forward-btn.hidden {
+.forward-btn.invisible {
     visibility: hidden;
 }
 

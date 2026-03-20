@@ -6,6 +6,10 @@
     const STORAGE_KEY = 'fcplanner_data';
     let currentDate = getTodayStr();
     let data = null;
+    let currentUser = null;
+    let db = null;
+    let syncEnabled = false;
+    let syncDebounceTimer = null;
 
     /* ===========================
        DATA LAYER
@@ -36,6 +40,7 @@
 
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        scheduleSyncToCloud();
     }
 
     function getDayData(dateStr) {
@@ -43,6 +48,263 @@
             data.days[dateStr] = { tasks: [], notes: '' };
         }
         return data.days[dateStr];
+    }
+
+    /* ===========================
+       FIREBASE SYNC
+       =========================== */
+
+    function isFirebaseAvailable() {
+        return typeof firebase !== 'undefined' &&
+               firebase.apps &&
+               firebase.apps.length > 0 &&
+               firebase.app().options.apiKey !== 'YOUR_API_KEY';
+    }
+
+    function initFirebase() {
+        if (!isFirebaseAvailable()) {
+            console.log('Firebase not configured — running in offline mode.');
+            return;
+        }
+
+        db = firebase.firestore();
+
+        firebase.auth().onAuthStateChanged(function (user) {
+            currentUser = user;
+            if (user) {
+                syncEnabled = true;
+                updateAuthUI(user);
+                syncFromCloud().then(function () {
+                    checkAndRunRollover();
+                    renderDay();
+                });
+            } else {
+                syncEnabled = false;
+                updateAuthUI(null);
+            }
+        });
+    }
+
+    function signIn() {
+        if (!isFirebaseAvailable()) {
+            showNotification('Firebase not configured. See firebase-config.js for setup instructions.');
+            return;
+        }
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider).catch(function (err) {
+            console.error('Sign-in failed:', err);
+            showNotification('Sign-in failed: ' + err.message);
+        });
+    }
+
+    function signOut() {
+        if (!isFirebaseAvailable()) return;
+        firebase.auth().signOut().catch(function (err) {
+            console.error('Sign-out failed:', err);
+        });
+    }
+
+    function scheduleSyncToCloud() {
+        if (!syncEnabled || !currentUser) return;
+        clearTimeout(syncDebounceTimer);
+        syncDebounceTimer = setTimeout(function () {
+            syncToCloud();
+        }, 1000);
+    }
+
+    function syncToCloud() {
+        if (!syncEnabled || !currentUser || !db) return;
+
+        setSyncStatus('syncing');
+
+        var userDocRef = db.collection('planners').doc(currentUser.uid);
+
+        // Store settings in main doc
+        var settingsPayload = {
+            settings: data.settings,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        var batch = db.batch();
+        batch.set(userDocRef, settingsPayload, { merge: true });
+
+        // Write each day as a subcollection document
+        var dayKeys = Object.keys(data.days);
+        // Firestore batches max 500 writes — chunk if needed
+        var batchPromises = [];
+        var currentBatch = batch;
+        var writeCount = 1; // 1 for the settings doc
+
+        for (var i = 0; i < dayKeys.length; i++) {
+            var dateStr = dayKeys[i];
+            var dayDoc = userDocRef.collection('days').doc(dateStr);
+            currentBatch.set(dayDoc, data.days[dateStr]);
+            writeCount++;
+
+            if (writeCount >= 490) {
+                batchPromises.push(currentBatch.commit());
+                currentBatch = db.batch();
+                writeCount = 0;
+            }
+        }
+
+        batchPromises.push(currentBatch.commit());
+
+        Promise.all(batchPromises)
+            .then(function () {
+                setSyncStatus('synced');
+            })
+            .catch(function (err) {
+                console.error('Sync to cloud failed:', err);
+                setSyncStatus('error');
+            });
+    }
+
+    function syncFromCloud() {
+        if (!currentUser || !db) return Promise.resolve();
+
+        setSyncStatus('syncing');
+
+        var userDocRef = db.collection('planners').doc(currentUser.uid);
+
+        return userDocRef.get().then(function (doc) {
+            var cloudSettings = null;
+            if (doc.exists && doc.data().settings) {
+                cloudSettings = doc.data().settings;
+            }
+
+            // Fetch all day documents
+            return userDocRef.collection('days').get().then(function (snapshot) {
+                var cloudDays = {};
+                snapshot.forEach(function (dayDoc) {
+                    cloudDays[dayDoc.id] = dayDoc.data();
+                });
+
+                // Merge: cloud data wins for days that exist in cloud,
+                // local-only days are preserved
+                mergeData(cloudDays, cloudSettings);
+                saveDataLocalOnly();
+                setSyncStatus('synced');
+            });
+        }).catch(function (err) {
+            console.error('Sync from cloud failed:', err);
+            setSyncStatus('error');
+        });
+    }
+
+    function mergeData(cloudDays, cloudSettings) {
+        // Merge days: for each day, take whichever has more tasks
+        // or merge by task ID (union of all tasks, cloud version wins for conflicts)
+        var allDates = new Set(Object.keys(data.days).concat(Object.keys(cloudDays)));
+
+        allDates.forEach(function (dateStr) {
+            var local = data.days[dateStr];
+            var cloud = cloudDays[dateStr];
+
+            if (!local && cloud) {
+                // Cloud only — take it
+                data.days[dateStr] = normalizeDayData(cloud);
+            } else if (local && !cloud) {
+                // Local only — keep it (will sync up on next save)
+            } else if (local && cloud) {
+                // Both exist — merge by task ID
+                var mergedTasks = mergeTasks(local.tasks || [], cloud.tasks || []);
+                data.days[dateStr] = {
+                    tasks: mergedTasks,
+                    notes: (cloud.notes || local.notes || '')
+                };
+            }
+        });
+
+        // Merge settings — prefer cloud's lastVisitedDate if more recent
+        if (cloudSettings) {
+            if (cloudSettings.lastVisitedDate && (!data.settings.lastVisitedDate ||
+                cloudSettings.lastVisitedDate > data.settings.lastVisitedDate)) {
+                data.settings.lastVisitedDate = cloudSettings.lastVisitedDate;
+            }
+        }
+    }
+
+    function normalizeDayData(dayData) {
+        // Firestore stores arrays of objects; ensure tasks array has proper structure
+        var tasks = [];
+        if (Array.isArray(dayData.tasks)) {
+            tasks = dayData.tasks.map(function (t) {
+                return {
+                    id: t.id || generateId(),
+                    priority: t.priority || 'C',
+                    number: t.number || 1,
+                    text: t.text || '',
+                    status: t.status || 'open',
+                    forwardedTo: t.forwardedTo || null,
+                    createdAt: t.createdAt || new Date().toISOString()
+                };
+            });
+        }
+        return {
+            tasks: tasks,
+            notes: dayData.notes || ''
+        };
+    }
+
+    function mergeTasks(localTasks, cloudTasks) {
+        // Build a map by task ID; cloud version wins for duplicates
+        var taskMap = {};
+        for (var i = 0; i < localTasks.length; i++) {
+            taskMap[localTasks[i].id] = localTasks[i];
+        }
+        for (var j = 0; j < cloudTasks.length; j++) {
+            taskMap[cloudTasks[j].id] = cloudTasks[j];
+        }
+        return Object.keys(taskMap).map(function (id) { return taskMap[id]; });
+    }
+
+    function saveDataLocalOnly() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    /* ===========================
+       AUTH UI
+       =========================== */
+
+    function updateAuthUI(user) {
+        var signInBtn = document.getElementById('sign-in-btn');
+        var signOutBtn = document.getElementById('sign-out-btn');
+        var authLabel = document.getElementById('auth-label');
+
+        if (user) {
+            signInBtn.classList.add('hidden');
+            signOutBtn.classList.remove('hidden');
+            authLabel.textContent = user.displayName || user.email || 'Signed in';
+        } else {
+            signInBtn.classList.remove('hidden');
+            signOutBtn.classList.add('hidden');
+            authLabel.textContent = 'Offline mode';
+            setSyncStatus('offline');
+        }
+    }
+
+    function setSyncStatus(status) {
+        var indicator = document.getElementById('sync-indicator');
+        indicator.classList.remove('sync-offline', 'sync-syncing', 'sync-synced', 'sync-error');
+
+        switch (status) {
+            case 'syncing':
+                indicator.classList.add('sync-syncing');
+                indicator.title = 'Syncing...';
+                break;
+            case 'synced':
+                indicator.classList.add('sync-synced');
+                indicator.title = 'Synced to cloud';
+                break;
+            case 'error':
+                indicator.classList.add('sync-error');
+                indicator.title = 'Sync error — changes saved locally';
+                break;
+            default:
+                indicator.classList.add('sync-offline');
+                indicator.title = 'Not signed in — data stored locally only';
+        }
     }
 
     /* ===========================
@@ -54,25 +316,25 @@
     }
 
     function toDateStr(d) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + day;
     }
 
     function parseDate(str) {
-        const [y, m, d] = str.split('-').map(Number);
-        return new Date(y, m - 1, d);
+        var parts = str.split('-').map(Number);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
     }
 
     function addDays(dateStr, n) {
-        const d = parseDate(dateStr);
+        var d = parseDate(dateStr);
         d.setDate(d.getDate() + n);
         return toDateStr(d);
     }
 
     function formatDateDisplay(dateStr) {
-        const d = parseDate(dateStr);
+        var d = parseDate(dateStr);
         return d.toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -86,26 +348,28 @@
     }
 
     function getNextNumber(tasks, priority) {
-        let max = 0;
-        for (const t of tasks) {
-            if (t.priority === priority && t.number > max) max = t.number;
+        var max = 0;
+        for (var i = 0; i < tasks.length; i++) {
+            if (tasks[i].priority === priority && tasks[i].number > max) max = tasks[i].number;
         }
         return max + 1;
     }
 
     function sortTasks(tasks) {
-        const order = { A: 0, B: 1, C: 2 };
-        return tasks.slice().sort((a, b) => {
+        var order = { A: 0, B: 1, C: 2 };
+        return tasks.slice().sort(function (a, b) {
             if (order[a.priority] !== order[b.priority]) return order[a.priority] - order[b.priority];
             return a.number - b.number;
         });
     }
 
     function debounce(fn, ms) {
-        let timer;
-        return function (...args) {
+        var timer;
+        return function () {
+            var args = arguments;
+            var context = this;
             clearTimeout(timer);
-            timer = setTimeout(() => fn.apply(this, args), ms);
+            timer = setTimeout(function () { fn.apply(context, args); }, ms);
         };
     }
 
@@ -114,8 +378,8 @@
        =========================== */
 
     function addTask(priority, text) {
-        const day = getDayData(currentDate);
-        const task = {
+        var day = getDayData(currentDate);
+        var task = {
             id: generateId(),
             priority: priority,
             number: getNextNumber(day.tasks, priority),
@@ -130,8 +394,8 @@
     }
 
     function updateTaskText(taskId, newText) {
-        const day = getDayData(currentDate);
-        const task = day.tasks.find(t => t.id === taskId);
+        var day = getDayData(currentDate);
+        var task = day.tasks.find(function (t) { return t.id === taskId; });
         if (task && newText.trim()) {
             task.text = newText.trim();
             saveData();
@@ -139,11 +403,10 @@
     }
 
     function cycleTaskStatus(taskId) {
-        const day = getDayData(currentDate);
-        const task = day.tasks.find(t => t.id === taskId);
+        var day = getDayData(currentDate);
+        var task = day.tasks.find(function (t) { return t.id === taskId; });
         if (!task) return;
-        const cycle = { open: 'completed', completed: 'cancelled', cancelled: 'open' };
-        // Don't cycle forwarded tasks
+        var cycle = { open: 'completed', completed: 'cancelled', cancelled: 'open' };
         if (task.status === 'forwarded') return;
         task.status = cycle[task.status] || 'open';
         saveData();
@@ -151,27 +414,27 @@
     }
 
     function changePriority(taskId, newPriority) {
-        const day = getDayData(currentDate);
-        const task = day.tasks.find(t => t.id === taskId);
+        var day = getDayData(currentDate);
+        var task = day.tasks.find(function (t) { return t.id === taskId; });
         if (!task || task.priority === newPriority) return;
         task.priority = newPriority;
-        task.number = getNextNumber(day.tasks.filter(t => t.id !== taskId), newPriority);
+        task.number = getNextNumber(day.tasks.filter(function (t) { return t.id !== taskId; }), newPriority);
         renumberPriority(day.tasks, task.priority);
         saveData();
         renderDay();
     }
 
     function renumberPriority(tasks, priority) {
-        const group = tasks.filter(t => t.priority === priority);
-        group.sort((a, b) => a.number - b.number);
-        group.forEach((t, i) => { t.number = i + 1; });
+        var group = tasks.filter(function (t) { return t.priority === priority; });
+        group.sort(function (a, b) { return a.number - b.number; });
+        group.forEach(function (t, i) { t.number = i + 1; });
     }
 
     function deleteTask(taskId) {
-        const day = getDayData(currentDate);
-        const idx = day.tasks.findIndex(t => t.id === taskId);
+        var day = getDayData(currentDate);
+        var idx = day.tasks.findIndex(function (t) { return t.id === taskId; });
         if (idx !== -1) {
-            const removed = day.tasks.splice(idx, 1)[0];
+            var removed = day.tasks.splice(idx, 1)[0];
             renumberPriority(day.tasks, removed.priority);
             saveData();
             renderDay();
@@ -179,23 +442,21 @@
     }
 
     function moveTask(taskId, direction) {
-        const day = getDayData(currentDate);
-        const task = day.tasks.find(t => t.id === taskId);
+        var day = getDayData(currentDate);
+        var task = day.tasks.find(function (t) { return t.id === taskId; });
         if (!task) return;
 
-        // Get tasks in the same priority group, sorted by number
-        const group = day.tasks
-            .filter(t => t.priority === task.priority)
-            .sort((a, b) => a.number - b.number);
+        var group = day.tasks
+            .filter(function (t) { return t.priority === task.priority; })
+            .sort(function (a, b) { return a.number - b.number; });
 
-        const idx = group.findIndex(t => t.id === taskId);
+        var idx = group.findIndex(function (t) { return t.id === taskId; });
         if (idx === -1) return;
 
-        const swapIdx = idx + direction; // -1 for up, +1 for down
+        var swapIdx = idx + direction;
         if (swapIdx < 0 || swapIdx >= group.length) return;
 
-        // Swap numbers
-        const tmp = task.number;
+        var tmp = task.number;
         task.number = group[swapIdx].number;
         group[swapIdx].number = tmp;
 
@@ -208,18 +469,16 @@
        =========================== */
 
     function forwardTask(taskId, targetDateStr, sourceDateStr) {
-        const srcDate = sourceDateStr || currentDate;
-        const srcDay = getDayData(srcDate);
-        const task = srcDay.tasks.find(t => t.id === taskId);
+        var srcDate = sourceDateStr || currentDate;
+        var srcDay = getDayData(srcDate);
+        var task = srcDay.tasks.find(function (t) { return t.id === taskId; });
         if (!task) return;
 
-        // Mark original as forwarded
         task.status = 'forwarded';
         task.forwardedTo = targetDateStr;
 
-        // Create copy on target date
-        const targetDay = getDayData(targetDateStr);
-        const newTask = {
+        var targetDay = getDayData(targetDateStr);
+        var newTask = {
             id: generateId(),
             priority: task.priority,
             number: getNextNumber(targetDay.tasks, task.priority),
@@ -237,8 +496,8 @@
        =========================== */
 
     function checkAndRunRollover() {
-        const today = getTodayStr();
-        const lastDate = data.settings.lastVisitedDate;
+        var today = getTodayStr();
+        var lastDate = data.settings.lastVisitedDate;
 
         if (!lastDate) {
             data.settings.lastVisitedDate = today;
@@ -252,15 +511,14 @@
             return;
         }
 
-        // Gather open tasks from lastDate through yesterday
-        let rolledCount = 0;
-        let d = lastDate;
+        var rolledCount = 0;
+        var d = lastDate;
         while (d < today) {
-            const day = data.days[d];
+            var day = data.days[d];
             if (day) {
-                const openTasks = day.tasks.filter(t => t.status === 'open');
-                for (const task of openTasks) {
-                    forwardTask(task.id, today, d);
+                var openTasks = day.tasks.filter(function (t) { return t.status === 'open'; });
+                for (var i = 0; i < openTasks.length; i++) {
+                    forwardTask(openTasks[i].id, today, d);
                     rolledCount++;
                 }
             }
@@ -271,7 +529,7 @@
         saveData();
 
         if (rolledCount > 0) {
-            showNotification(`${rolledCount} task${rolledCount > 1 ? 's' : ''} rolled over to today.`);
+            showNotification(rolledCount + ' task' + (rolledCount > 1 ? 's' : '') + ' rolled over to today.');
         }
     }
 
@@ -302,15 +560,13 @@
        =========================== */
 
     function renderDay() {
-        const day = getDayData(currentDate);
-        const sorted = sortTasks(day.tasks);
+        var day = getDayData(currentDate);
+        var sorted = sortTasks(day.tasks);
 
-        // Update header
         document.getElementById('current-date-label').textContent = formatDateDisplay(currentDate);
 
-        // Date badge
-        const badge = document.getElementById('date-badge');
-        const today = getTodayStr();
+        var badge = document.getElementById('date-badge');
+        var today = getTodayStr();
         badge.classList.remove('today', 'past', 'future', 'hidden');
         if (currentDate === today) {
             badge.textContent = 'Today';
@@ -323,157 +579,151 @@
             badge.classList.add('future');
         }
 
-        // Task summary
-        const total = day.tasks.length;
-        const completed = day.tasks.filter(t => t.status === 'completed').length;
-        const summaryEl = document.getElementById('task-summary');
+        var total = day.tasks.length;
+        var completed = day.tasks.filter(function (t) { return t.status === 'completed'; }).length;
+        var summaryEl = document.getElementById('task-summary');
         if (total > 0) {
-            summaryEl.textContent = `${completed} of ${total} task${total !== 1 ? 's' : ''} completed`;
+            summaryEl.textContent = completed + ' of ' + total + ' task' + (total !== 1 ? 's' : '') + ' completed';
         } else {
             summaryEl.textContent = '';
         }
 
-        // Task list
-        const listEl = document.getElementById('task-list');
+        var listEl = document.getElementById('task-list');
         listEl.innerHTML = '';
 
         if (sorted.length === 0) {
-            const empty = document.createElement('div');
+            var empty = document.createElement('div');
             empty.className = 'empty-state';
             empty.textContent = 'No tasks for this day. Add one below.';
             listEl.appendChild(empty);
         } else {
-            for (const task of sorted) {
-                listEl.appendChild(createTaskRow(task));
+            for (var i = 0; i < sorted.length; i++) {
+                listEl.appendChild(createTaskRow(sorted[i]));
             }
         }
 
-        // Notes
-        const notesEl = document.getElementById('daily-notes');
+        var notesEl = document.getElementById('daily-notes');
         notesEl.value = day.notes || '';
 
-        // Update date picker value
         document.getElementById('date-picker').value = currentDate;
     }
 
     function createTaskRow(task) {
-        const row = document.createElement('div');
-        row.className = `task-row status-${task.status}`;
+        var row = document.createElement('div');
+        row.className = 'task-row status-' + task.status;
         row.dataset.id = task.id;
 
         // Priority badge
-        const priCol = document.createElement('div');
+        var priCol = document.createElement('div');
         priCol.className = 'col-priority';
-        const priBadge = document.createElement('span');
-        priBadge.className = `priority-badge priority-${task.priority}`;
+        var priBadge = document.createElement('span');
+        priBadge.className = 'priority-badge priority-' + task.priority;
         priBadge.textContent = task.priority;
         priBadge.title = 'Click to change priority';
-        priBadge.addEventListener('click', (e) => showPriorityDropdown(e, task.id, task.priority));
+        priBadge.addEventListener('click', function (e) { showPriorityDropdown(e, task.id, task.priority); });
         priCol.appendChild(priBadge);
 
         // Number
-        const numCol = document.createElement('div');
+        var numCol = document.createElement('div');
         numCol.className = 'col-number';
-        const numSpan = document.createElement('span');
+        var numSpan = document.createElement('span');
         numSpan.className = 'task-number';
         numSpan.textContent = task.number;
         numCol.appendChild(numSpan);
 
         // Task text (textarea for wrapping)
-        const taskCol = document.createElement('div');
+        var taskCol = document.createElement('div');
         taskCol.className = 'col-task';
-        const textArea = document.createElement('textarea');
+        var textArea = document.createElement('textarea');
         textArea.className = 'task-text';
         textArea.value = task.text;
         textArea.rows = 1;
         textArea.readOnly = task.status === 'forwarded';
-        textArea.addEventListener('blur', () => updateTaskText(task.id, textArea.value));
-        textArea.addEventListener('keydown', (e) => {
+        textArea.addEventListener('blur', function () { updateTaskText(task.id, textArea.value); });
+        textArea.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 textArea.blur();
             }
         });
-        // Auto-resize height
         function autoResize() {
             textArea.style.height = 'auto';
             textArea.style.height = textArea.scrollHeight + 'px';
         }
         textArea.addEventListener('input', autoResize);
-        // Resize on next frame so it measures correctly after DOM insertion
         requestAnimationFrame(autoResize);
         taskCol.appendChild(textArea);
 
         if (task.status === 'forwarded' && task.forwardedTo) {
-            const fwdInfo = document.createElement('span');
+            var fwdInfo = document.createElement('span');
             fwdInfo.className = 'forwarded-info';
-            fwdInfo.textContent = `\u2192 ${task.forwardedTo}`;
-            fwdInfo.title = `Forwarded to ${formatDateDisplay(task.forwardedTo)}`;
+            fwdInfo.textContent = '\u2192 ' + task.forwardedTo;
+            fwdInfo.title = 'Forwarded to ' + formatDateDisplay(task.forwardedTo);
             taskCol.appendChild(fwdInfo);
         }
 
         // Actions
-        const actCol = document.createElement('div');
+        var actCol = document.createElement('div');
         actCol.className = 'col-actions';
-        const actionsDiv = document.createElement('div');
+        var actionsDiv = document.createElement('div');
         actionsDiv.className = 'task-actions';
 
         // Reorder buttons
-        const day = getDayData(currentDate);
-        const group = day.tasks
-            .filter(t => t.priority === task.priority)
-            .sort((a, b) => a.number - b.number);
-        const groupIdx = group.findIndex(t => t.id === task.id);
+        var day = getDayData(currentDate);
+        var group = day.tasks
+            .filter(function (t) { return t.priority === task.priority; })
+            .sort(function (a, b) { return a.number - b.number; });
+        var groupIdx = group.findIndex(function (t) { return t.id === task.id; });
 
-        const reorderDiv = document.createElement('div');
+        var reorderDiv = document.createElement('div');
         reorderDiv.className = 'reorder-btns';
 
-        const upBtn = document.createElement('button');
+        var upBtn = document.createElement('button');
         upBtn.className = 'reorder-btn';
-        upBtn.textContent = '\u25B2'; // ▲
+        upBtn.textContent = '\u25B2';
         upBtn.title = 'Move up';
         upBtn.disabled = groupIdx <= 0;
-        upBtn.addEventListener('click', () => moveTask(task.id, -1));
+        upBtn.addEventListener('click', function () { moveTask(task.id, -1); });
         reorderDiv.appendChild(upBtn);
 
-        const downBtn = document.createElement('button');
+        var downBtn = document.createElement('button');
         downBtn.className = 'reorder-btn';
-        downBtn.textContent = '\u25BC'; // ▼
+        downBtn.textContent = '\u25BC';
         downBtn.title = 'Move down';
         downBtn.disabled = groupIdx >= group.length - 1;
-        downBtn.addEventListener('click', () => moveTask(task.id, 1));
+        downBtn.addEventListener('click', function () { moveTask(task.id, 1); });
         reorderDiv.appendChild(downBtn);
 
         actionsDiv.appendChild(reorderDiv);
 
         // Status button
-        const statusBtn = document.createElement('button');
-        statusBtn.className = `status-btn status-${task.status}`;
-        statusBtn.title = `Status: ${task.status} (click to change)`;
-        const statusIcons = {
-            open: '\u25CB',       // ○
-            completed: '\u2713',  // ✓
-            cancelled: '\u2715',  // ✕
-            forwarded: '\u2192'   // →
+        var statusBtn = document.createElement('button');
+        statusBtn.className = 'status-btn status-' + task.status;
+        statusBtn.title = 'Status: ' + task.status + ' (click to change)';
+        var statusIcons = {
+            open: '\u25CB',
+            completed: '\u2713',
+            cancelled: '\u2715',
+            forwarded: '\u2192'
         };
         statusBtn.textContent = statusIcons[task.status] || '\u25CB';
-        statusBtn.addEventListener('click', () => cycleTaskStatus(task.id));
+        statusBtn.addEventListener('click', function () { cycleTaskStatus(task.id); });
         actionsDiv.appendChild(statusBtn);
 
-        // Forward button (only for open tasks)
-        const fwdBtn = document.createElement('button');
-        fwdBtn.className = `forward-btn${task.status !== 'open' ? ' hidden' : ''}`;
+        // Forward button
+        var fwdBtn = document.createElement('button');
+        fwdBtn.className = 'forward-btn' + (task.status !== 'open' ? ' invisible' : '');
         fwdBtn.title = 'Forward to another day';
-        fwdBtn.textContent = '\u21AA'; // ↪
-        fwdBtn.addEventListener('click', () => showForwardPicker(task.id, row));
+        fwdBtn.textContent = '\u21AA';
+        fwdBtn.addEventListener('click', function () { showForwardPicker(task.id, row); });
         actionsDiv.appendChild(fwdBtn);
 
         // Delete button
-        const delBtn = document.createElement('button');
+        var delBtn = document.createElement('button');
         delBtn.className = 'delete-btn';
         delBtn.title = 'Delete task';
-        delBtn.textContent = '\uD83D\uDDD1'; // 🗑
-        delBtn.addEventListener('click', () => {
+        delBtn.textContent = '\uD83D\uDDD1';
+        delBtn.addEventListener('click', function () {
             if (confirm('Delete this task?')) deleteTask(task.id);
         });
         actionsDiv.appendChild(delBtn);
@@ -493,25 +743,24 @@
        =========================== */
 
     function showForwardPicker(taskId, rowElement) {
-        // Remove any existing picker
-        const existing = document.querySelector('.forward-picker');
+        var existing = document.querySelector('.forward-picker');
         if (existing) existing.remove();
 
-        const picker = document.createElement('div');
+        var picker = document.createElement('div');
         picker.className = 'forward-picker';
 
-        const label = document.createElement('span');
+        var label = document.createElement('span');
         label.textContent = 'Forward to: ';
 
-        const dateInput = document.createElement('input');
+        var dateInput = document.createElement('input');
         dateInput.type = 'date';
         dateInput.min = addDays(currentDate, 1);
         dateInput.value = addDays(currentDate, 1);
 
-        const confirmBtn = document.createElement('button');
+        var confirmBtn = document.createElement('button');
         confirmBtn.className = 'fwd-confirm';
         confirmBtn.textContent = 'Forward';
-        confirmBtn.addEventListener('click', () => {
+        confirmBtn.addEventListener('click', function () {
             if (dateInput.value && dateInput.value > currentDate) {
                 forwardTask(taskId, dateInput.value);
                 picker.remove();
@@ -519,10 +768,10 @@
             }
         });
 
-        const cancelBtn = document.createElement('button');
+        var cancelBtn = document.createElement('button');
         cancelBtn.className = 'fwd-cancel';
         cancelBtn.textContent = 'Cancel';
-        cancelBtn.addEventListener('click', () => picker.remove());
+        cancelBtn.addEventListener('click', function () { picker.remove(); });
 
         picker.appendChild(label);
         picker.appendChild(dateInput);
@@ -539,48 +788,49 @@
     function showPriorityDropdown(event, taskId, currentPriority) {
         closePriorityDropdown();
 
-        const dropdown = document.createElement('div');
+        var dropdown = document.createElement('div');
         dropdown.className = 'priority-dropdown';
         dropdown.id = 'priority-dropdown';
 
-        const priorities = [
-            { value: 'A', label: 'A — Vital' },
-            { value: 'B', label: 'B — Important' },
-            { value: 'C', label: 'C — Nice to do' }
+        var priorities = [
+            { value: 'A', label: 'A \u2014 Vital' },
+            { value: 'B', label: 'B \u2014 Important' },
+            { value: 'C', label: 'C \u2014 Nice to do' }
         ];
 
-        for (const p of priorities) {
-            if (p.value === currentPriority) continue;
-            const btn = document.createElement('button');
-            btn.textContent = p.label;
-            btn.addEventListener('click', () => {
-                changePriority(taskId, p.value);
-                closePriorityDropdown();
-            });
-            dropdown.appendChild(btn);
+        for (var i = 0; i < priorities.length; i++) {
+            if (priorities[i].value === currentPriority) continue;
+            (function (p) {
+                var btn = document.createElement('button');
+                btn.textContent = p.label;
+                btn.addEventListener('click', function () {
+                    changePriority(taskId, p.value);
+                    closePriorityDropdown();
+                });
+                dropdown.appendChild(btn);
+            })(priorities[i]);
         }
 
-        const rect = event.target.getBoundingClientRect();
+        var rect = event.target.getBoundingClientRect();
         dropdown.style.position = 'fixed';
         dropdown.style.top = (rect.bottom + 4) + 'px';
         dropdown.style.left = rect.left + 'px';
 
         document.body.appendChild(dropdown);
 
-        // Close on outside click
-        setTimeout(() => {
+        setTimeout(function () {
             document.addEventListener('click', closePriorityDropdownOnOutside);
         }, 0);
     }
 
     function closePriorityDropdown() {
-        const el = document.getElementById('priority-dropdown');
+        var el = document.getElementById('priority-dropdown');
         if (el) el.remove();
         document.removeEventListener('click', closePriorityDropdownOnOutside);
     }
 
     function closePriorityDropdownOnOutside(e) {
-        const dd = document.getElementById('priority-dropdown');
+        var dd = document.getElementById('priority-dropdown');
         if (dd && !dd.contains(e.target)) {
             closePriorityDropdown();
         }
@@ -591,11 +841,11 @@
        =========================== */
 
     function showNotification(text) {
-        const el = document.getElementById('notification');
-        const textEl = document.getElementById('notification-text');
+        var el = document.getElementById('notification');
+        var textEl = document.getElementById('notification-text');
         textEl.textContent = text;
         el.classList.remove('hidden');
-        setTimeout(() => el.classList.add('hidden'), 6000);
+        setTimeout(function () { el.classList.add('hidden'); }, 6000);
     }
 
     /* ===========================
@@ -603,89 +853,83 @@
        =========================== */
 
     function bindEvents() {
-        // Navigation
         document.getElementById('prev-day').addEventListener('click', goToPreviousDay);
         document.getElementById('next-day').addEventListener('click', goToNextDay);
         document.getElementById('go-today').addEventListener('click', goToToday);
 
-        // Date picker (click on date label)
-        const dateLabel = document.getElementById('current-date-label');
-        const datePicker = document.getElementById('date-picker');
-        dateLabel.addEventListener('click', () => {
+        var dateLabel = document.getElementById('current-date-label');
+        var datePicker = document.getElementById('date-picker');
+        dateLabel.addEventListener('click', function () {
             datePicker.showPicker ? datePicker.showPicker() : datePicker.click();
         });
-        datePicker.addEventListener('change', () => {
+        datePicker.addEventListener('change', function () {
             if (datePicker.value) navigateToDate(datePicker.value);
         });
 
-        // Notification close
-        document.getElementById('notification-close').addEventListener('click', () => {
+        document.getElementById('notification-close').addEventListener('click', function () {
             document.getElementById('notification').classList.add('hidden');
         });
 
-        // Add task form
-        document.getElementById('add-task-form').addEventListener('submit', (e) => {
+        document.getElementById('add-task-form').addEventListener('submit', function (e) {
             e.preventDefault();
-            const priorityEl = document.getElementById('new-task-priority');
-            const textEl = document.getElementById('new-task-text');
-            const text = textEl.value.trim();
+            var priorityEl = document.getElementById('new-task-priority');
+            var textEl = document.getElementById('new-task-text');
+            var text = textEl.value.trim();
             if (!text) return;
             addTask(priorityEl.value, text);
             textEl.value = '';
             textEl.focus();
         });
 
-        // Notes auto-save
-        const notesEl = document.getElementById('daily-notes');
-        const saveNotes = debounce(() => {
-            const day = getDayData(currentDate);
+        var notesEl = document.getElementById('daily-notes');
+        var saveNotes = debounce(function () {
+            var day = getDayData(currentDate);
             day.notes = notesEl.value;
             saveData();
         }, 500);
         notesEl.addEventListener('input', saveNotes);
-        notesEl.addEventListener('blur', () => {
-            const day = getDayData(currentDate);
+        notesEl.addEventListener('blur', function () {
+            var day = getDayData(currentDate);
             day.notes = notesEl.value;
             saveData();
         });
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            // Don't trigger shortcuts when typing in inputs
+        document.addEventListener('keydown', function (e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-
             if (e.key === 'ArrowLeft') { e.preventDefault(); goToPreviousDay(); }
             if (e.key === 'ArrowRight') { e.preventDefault(); goToNextDay(); }
             if (e.key === 't' || e.key === 'T') { e.preventDefault(); goToToday(); }
         });
 
-        // Hash navigation (back/forward)
-        window.addEventListener('hashchange', () => {
-            const hash = window.location.hash.slice(1);
+        window.addEventListener('hashchange', function () {
+            var hash = window.location.hash.slice(1);
             if (hash && /^\d{4}-\d{2}-\d{2}$/.test(hash) && hash !== currentDate) {
                 currentDate = hash;
                 renderDay();
             }
         });
+
+        // Auth buttons
+        document.getElementById('sign-in-btn').addEventListener('click', signIn);
+        document.getElementById('sign-out-btn').addEventListener('click', signOut);
     }
 
     function init() {
         data = loadData();
 
-        // Check URL hash for initial date
-        const hash = window.location.hash.slice(1);
+        var hash = window.location.hash.slice(1);
         if (hash && /^\d{4}-\d{2}-\d{2}$/.test(hash)) {
             currentDate = hash;
         }
 
-        // Run rollover before first render
         checkAndRunRollover();
-
         bindEvents();
         renderDay();
+
+        // Initialize Firebase (async — won't block first render)
+        initFirebase();
     }
 
-    // Start the app
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
