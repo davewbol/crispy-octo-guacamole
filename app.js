@@ -178,6 +178,31 @@
         }
     }
 
+    function moveTask(taskId, direction) {
+        const day = getDayData(currentDate);
+        const task = day.tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        // Get tasks in the same priority group, sorted by number
+        const group = day.tasks
+            .filter(t => t.priority === task.priority)
+            .sort((a, b) => a.number - b.number);
+
+        const idx = group.findIndex(t => t.id === taskId);
+        if (idx === -1) return;
+
+        const swapIdx = idx + direction; // -1 for up, +1 for down
+        if (swapIdx < 0 || swapIdx >= group.length) return;
+
+        // Swap numbers
+        const tmp = task.number;
+        task.number = group[swapIdx].number;
+        group[swapIdx].number = tmp;
+
+        saveData();
+        renderDay();
+    }
+
     /* ===========================
        FORWARDING
        =========================== */
@@ -354,19 +379,30 @@
         numSpan.textContent = task.number;
         numCol.appendChild(numSpan);
 
-        // Task text
+        // Task text (textarea for wrapping)
         const taskCol = document.createElement('div');
         taskCol.className = 'col-task';
-        const textInput = document.createElement('input');
-        textInput.type = 'text';
-        textInput.className = 'task-text';
-        textInput.value = task.text;
-        textInput.readOnly = task.status === 'forwarded';
-        textInput.addEventListener('blur', () => updateTaskText(task.id, textInput.value));
-        textInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') textInput.blur();
+        const textArea = document.createElement('textarea');
+        textArea.className = 'task-text';
+        textArea.value = task.text;
+        textArea.rows = 1;
+        textArea.readOnly = task.status === 'forwarded';
+        textArea.addEventListener('blur', () => updateTaskText(task.id, textArea.value));
+        textArea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                textArea.blur();
+            }
         });
-        taskCol.appendChild(textInput);
+        // Auto-resize height
+        function autoResize() {
+            textArea.style.height = 'auto';
+            textArea.style.height = textArea.scrollHeight + 'px';
+        }
+        textArea.addEventListener('input', autoResize);
+        // Resize on next frame so it measures correctly after DOM insertion
+        requestAnimationFrame(autoResize);
+        taskCol.appendChild(textArea);
 
         if (task.status === 'forwarded' && task.forwardedTo) {
             const fwdInfo = document.createElement('span');
@@ -381,6 +417,34 @@
         actCol.className = 'col-actions';
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'task-actions';
+
+        // Reorder buttons
+        const day = getDayData(currentDate);
+        const group = day.tasks
+            .filter(t => t.priority === task.priority)
+            .sort((a, b) => a.number - b.number);
+        const groupIdx = group.findIndex(t => t.id === task.id);
+
+        const reorderDiv = document.createElement('div');
+        reorderDiv.className = 'reorder-btns';
+
+        const upBtn = document.createElement('button');
+        upBtn.className = 'reorder-btn';
+        upBtn.textContent = '\u25B2'; // ▲
+        upBtn.title = 'Move up';
+        upBtn.disabled = groupIdx <= 0;
+        upBtn.addEventListener('click', () => moveTask(task.id, -1));
+        reorderDiv.appendChild(upBtn);
+
+        const downBtn = document.createElement('button');
+        downBtn.className = 'reorder-btn';
+        downBtn.textContent = '\u25BC'; // ▼
+        downBtn.title = 'Move down';
+        downBtn.disabled = groupIdx >= group.length - 1;
+        downBtn.addEventListener('click', () => moveTask(task.id, 1));
+        reorderDiv.appendChild(downBtn);
+
+        actionsDiv.appendChild(reorderDiv);
 
         // Status button
         const statusBtn = document.createElement('button');
