@@ -1080,7 +1080,7 @@ html, body {
     }
 
     .task-text {
-        font-size: 14px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
     }
 
     .add-task-form {
