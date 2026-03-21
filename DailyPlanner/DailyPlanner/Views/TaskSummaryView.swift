@@ -17,8 +17,9 @@ struct TaskSummaryView: View {
 
             if streak > 0 {
                 HStack(spacing: 4) {
-                    Text("\u{1F525}")
+                    Image(systemName: "flame.fill")
                         .font(.system(size: 14))
+                        .foregroundStyle(.orange)
                     Text("\(streak)")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(theme.textPrimary)
