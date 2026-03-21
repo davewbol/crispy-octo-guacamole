@@ -243,6 +243,8 @@ body {
 }
 
 .theme-toggle {
+    min-width: 44px;
+    min-height: 40px;
     width: 44px;
     height: 40px;
     border: 1px solid var(--border-primary);
@@ -254,6 +256,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     transition: background 0.15s;
 }
 
@@ -1019,9 +1022,12 @@ html, body {
     }
 
     .theme-toggle {
-        width: 44px;
-        height: 40px;
-        font-size: 20px;
+        min-width: 48px;
+        min-height: 48px;
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+        flex-shrink: 0;
     }
 
     .theme-btn {
