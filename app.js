@@ -870,6 +870,30 @@
             document.getElementById('notification').classList.add('hidden');
         });
 
+        document.getElementById('new-task-text').addEventListener('paste', function (e) {
+            var clipboardData = e.clipboardData || window.clipboardData;
+            var pasted = clipboardData.getData('text');
+            // Match lines starting with bullet characters: •, -, *, ●, ◦, ▪, ▸, or numbered like "1." "2)"
+            var lines = pasted.split(/\r?\n/);
+            var bulletPattern = /^\s*(?:[•\-\*●◦▪▸►‣⁃]|\d+[\.\):])\s+/;
+            var items = [];
+            for (var i = 0; i < lines.length; i++) {
+                if (bulletPattern.test(lines[i])) {
+                    var text = lines[i].replace(bulletPattern, '').trim();
+                    if (text) items.push(text);
+                }
+            }
+            if (items.length > 1) {
+                e.preventDefault();
+                var priority = document.getElementById('new-task-priority').value;
+                for (var j = 0; j < items.length; j++) {
+                    addTask(priority, items[j]);
+                }
+                this.value = '';
+                this.focus();
+            }
+        });
+
         document.getElementById('add-task-form').addEventListener('submit', function (e) {
             e.preventDefault();
             var priorityEl = document.getElementById('new-task-priority');
