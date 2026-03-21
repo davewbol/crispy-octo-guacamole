@@ -1,0 +1,382 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9424B77682C491CA0A0248E0 /* DailyPlannerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D914DB05CFFB7A984983265F /* DailyPlannerApp.swift */; };
+		E5605997754A9CCB37D17001 /* PlannerTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = B54F5E38207EA54D7DC0714E /* PlannerTask.swift */; };
+		D37B6D28B526D69B38C6F8E3 /* DayData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B16A643B2923B3A670B9C6 /* DayData.swift */; };
+		A19754A636A71D1E1C337D89 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61F1AEA80E93CFF3F87ECEF /* AppSettings.swift */; };
+		2D12B30751AB9ADD6F86B66E /* PlannerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12CFE8C18EA7FFD89BFD8BAE /* PlannerViewModel.swift */; };
+		EB60C02B099791DDB6423F76 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D87A9F97AF01D20885094A5 /* AuthViewModel.swift */; };
+		41B70DC864370103BD35E89C /* LocalStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D14D9A818FEFADE33395868 /* LocalStorageService.swift */; };
+		574AFF3099BECD5F8D11021E /* FirebaseSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3209369FE79015829DAF6BC0 /* FirebaseSyncService.swift */; };
+		E60F9BA06F78FC92EDE66E47 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C152B1A8FD778C9D2BD8C9 /* ContentView.swift */; };
+		F9FEDFD450FC5CF0910F9D48 /* MainPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791F2CC7E0F7E3C65BFBB57C /* MainPlannerView.swift */; };
+		26CA0A1B86EA47094DBACD65 /* DateHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39048EC4BF74F439D3CD7A8A /* DateHeaderView.swift */; };
+		D122DCD8A42A02322503B0F5 /* WeeklyHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F387D9B15250040D3867AC7 /* WeeklyHeatmapView.swift */; };
+		7391692B5D2A88F3122B8252 /* TaskSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D0DC8D8D54D5A774D7333DB /* TaskSummaryView.swift */; };
+		639B249A2C5CAB1C2BA36489 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FE2304994DC6C971F6FD5B /* TaskListView.swift */; };
+		DCB1138A0948FA435852884E /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E214A87482FD7B63A117542 /* TaskRowView.swift */; };
+		2DF0EF56C3A21CFC6EC6B329 /* AddTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA140DDC794D2A1B84E54B81 /* AddTaskView.swift */; };
+		62C97B4EE99D9388361CDEA0 /* DailyNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E440E56C33ACE4A705D8D46A /* DailyNotesView.swift */; };
+		F1BADF9041225B9350D4AC0A /* ForwardTaskSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DBFB18E8E1E00556ADA1FA1 /* ForwardTaskSheet.swift */; };
+		FB205DDA7D2ADF91AB1E616C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861E2DE289F4C52451EB0732 /* SettingsView.swift */; };
+		70C402ADEDD8B262796EE844 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928C485E3B73200539119443 /* ConfettiView.swift */; };
+		143CDFC5DEC9558707C28935 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE73B1D4BFFBB42954F59994 /* AppTheme.swift */; };
+		1417E573FDE4D7E9CE21523B /* DateHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EA05BFD26180709A9D9F77 /* DateHelpers.swift */; };
+		8C6175E7D4401E660D1F31DF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B16A58646BB87EB90D038977 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		D914DB05CFFB7A984983265F /* DailyPlannerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DailyPlannerApp.swift"; sourceTree = "<group>"; };
+		B54F5E38207EA54D7DC0714E /* PlannerTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlannerTask.swift"; sourceTree = "<group>"; };
+		57B16A643B2923B3A670B9C6 /* DayData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DayData.swift"; sourceTree = "<group>"; };
+		B61F1AEA80E93CFF3F87ECEF /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppSettings.swift"; sourceTree = "<group>"; };
+		12CFE8C18EA7FFD89BFD8BAE /* PlannerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlannerViewModel.swift"; sourceTree = "<group>"; };
+		6D87A9F97AF01D20885094A5 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthViewModel.swift"; sourceTree = "<group>"; };
+		5D14D9A818FEFADE33395868 /* LocalStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LocalStorageService.swift"; sourceTree = "<group>"; };
+		3209369FE79015829DAF6BC0 /* FirebaseSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService.swift"; sourceTree = "<group>"; };
+		41C152B1A8FD778C9D2BD8C9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView.swift"; sourceTree = "<group>"; };
+		791F2CC7E0F7E3C65BFBB57C /* MainPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainPlannerView.swift"; sourceTree = "<group>"; };
+		39048EC4BF74F439D3CD7A8A /* DateHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateHeaderView.swift"; sourceTree = "<group>"; };
+		5F387D9B15250040D3867AC7 /* WeeklyHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeeklyHeatmapView.swift"; sourceTree = "<group>"; };
+		0D0DC8D8D54D5A774D7333DB /* TaskSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskSummaryView.swift"; sourceTree = "<group>"; };
+		23FE2304994DC6C971F6FD5B /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskListView.swift"; sourceTree = "<group>"; };
+		4E214A87482FD7B63A117542 /* TaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskRowView.swift"; sourceTree = "<group>"; };
+		BA140DDC794D2A1B84E54B81 /* AddTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AddTaskView.swift"; sourceTree = "<group>"; };
+		E440E56C33ACE4A705D8D46A /* DailyNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DailyNotesView.swift"; sourceTree = "<group>"; };
+		6DBFB18E8E1E00556ADA1FA1 /* ForwardTaskSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForwardTaskSheet.swift"; sourceTree = "<group>"; };
+		861E2DE289F4C52451EB0732 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; sourceTree = "<group>"; };
+		928C485E3B73200539119443 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConfettiView.swift"; sourceTree = "<group>"; };
+		FE73B1D4BFFBB42954F59994 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppTheme.swift"; sourceTree = "<group>"; };
+		A6EA05BFD26180709A9D9F77 /* DateHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateHelpers.swift"; sourceTree = "<group>"; };
+		B16A58646BB87EB90D038977 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		71CCD365E3A654DA84DBA191 /* DailyPlanner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyPlanner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6BC9136C2E1B992EF374A2EA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8D3FC6DB5D0827F168A73277 = {
+			isa = PBXGroup;
+			children = (
+				DD4738F9D312D47DC7457DC9,
+				1BADDC1D73C1A20F347483E1,
+			);
+			sourceTree = "<group>";
+		};
+		1BADDC1D73C1A20F347483E1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				71CCD365E3A654DA84DBA191 /* DailyPlanner.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DD4738F9D312D47DC7457DC9 /* DailyPlanner */ = {
+			isa = PBXGroup;
+			children = (
+				D914DB05CFFB7A984983265F,
+				B16A58646BB87EB90D038977,
+				9CF43B31E8845D861542A38E,
+				420CEB417186B52ECF642348,
+				564EAF51B7DD4639ADD9B985,
+				C454586A1F4E28C340BDC1AD,
+				7999BCA23EC4E9B2C00838D3,
+				94EC979C78A1C9E483FAC308,
+			);
+			path = DailyPlanner;
+			sourceTree = "<group>";
+		};
+		9CF43B31E8845D861542A38E /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B54F5E38207EA54D7DC0714E,
+				57B16A643B2923B3A670B9C6,
+				B61F1AEA80E93CFF3F87ECEF,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		420CEB417186B52ECF642348 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				12CFE8C18EA7FFD89BFD8BAE,
+				6D87A9F97AF01D20885094A5,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		564EAF51B7DD4639ADD9B985 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				5D14D9A818FEFADE33395868,
+				3209369FE79015829DAF6BC0,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C454586A1F4E28C340BDC1AD /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				41C152B1A8FD778C9D2BD8C9,
+				791F2CC7E0F7E3C65BFBB57C,
+				39048EC4BF74F439D3CD7A8A,
+				5F387D9B15250040D3867AC7,
+				0D0DC8D8D54D5A774D7333DB,
+				23FE2304994DC6C971F6FD5B,
+				4E214A87482FD7B63A117542,
+				BA140DDC794D2A1B84E54B81,
+				E440E56C33ACE4A705D8D46A,
+				6DBFB18E8E1E00556ADA1FA1,
+				861E2DE289F4C52451EB0732,
+				928C485E3B73200539119443,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		7999BCA23EC4E9B2C00838D3 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				FE73B1D4BFFBB42954F59994,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		94EC979C78A1C9E483FAC308 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				A6EA05BFD26180709A9D9F77,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		80D4D6709CBD756324102A99 /* DailyPlanner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C06E62466F2E7B4AF7DFAB0;
+			buildPhases = (
+				F680599402C0D80E245DE801,
+				6BC9136C2E1B992EF374A2EA,
+				781C774F390DF12CD292A30B,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DailyPlanner;
+			productName = DailyPlanner;
+			productReference = 71CCD365E3A654DA84DBA191;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2555B8DE2682DD2A8D46F685 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = C085440347EF9F106FB6C3E3;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 8D3FC6DB5D0827F168A73277;
+			productRefGroup = 1BADDC1D73C1A20F347483E1;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				80D4D6709CBD756324102A99,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		781C774F390DF12CD292A30B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8C6175E7D4401E660D1F31DF,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F680599402C0D80E245DE801 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9424B77682C491CA0A0248E0 /* DailyPlannerApp.swift */,
+				E5605997754A9CCB37D17001 /* PlannerTask.swift */,
+				D37B6D28B526D69B38C6F8E3 /* DayData.swift */,
+				A19754A636A71D1E1C337D89 /* AppSettings.swift */,
+				2D12B30751AB9ADD6F86B66E /* PlannerViewModel.swift */,
+				EB60C02B099791DDB6423F76 /* AuthViewModel.swift */,
+				41B70DC864370103BD35E89C /* LocalStorageService.swift */,
+				574AFF3099BECD5F8D11021E /* FirebaseSyncService.swift */,
+				E60F9BA06F78FC92EDE66E47 /* ContentView.swift */,
+				F9FEDFD450FC5CF0910F9D48 /* MainPlannerView.swift */,
+				26CA0A1B86EA47094DBACD65 /* DateHeaderView.swift */,
+				D122DCD8A42A02322503B0F5 /* WeeklyHeatmapView.swift */,
+				7391692B5D2A88F3122B8252 /* TaskSummaryView.swift */,
+				639B249A2C5CAB1C2BA36489 /* TaskListView.swift */,
+				DCB1138A0948FA435852884E /* TaskRowView.swift */,
+				2DF0EF56C3A21CFC6EC6B329 /* AddTaskView.swift */,
+				62C97B4EE99D9388361CDEA0 /* DailyNotesView.swift */,
+				F1BADF9041225B9350D4AC0A /* ForwardTaskSheet.swift */,
+				FB205DDA7D2ADF91AB1E616C /* SettingsView.swift */,
+				70C402ADEDD8B262796EE844 /* ConfettiView.swift */,
+				143CDFC5DEC9558707C28935 /* AppTheme.swift */,
+				1417E573FDE4D7E9CE21523B /* DateHelpers.swift */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		330E7FCEE03E8D0A287F3B98 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		2F48E430D97880EC26B6E30E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		25415CCA7802CDA551613B28 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dailyplanner.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		45EC8DDF293C755790833EE8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dailyplanner.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C085440347EF9F106FB6C3E3 /* Build configuration list for PBXProject */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				330E7FCEE03E8D0A287F3B98,
+				2F48E430D97880EC26B6E30E,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7C06E62466F2E7B4AF7DFAB0 /* Build configuration list for PBXNativeTarget */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				25415CCA7802CDA551613B28,
+				45EC8DDF293C755790833EE8,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 2555B8DE2682DD2A8D46F685;
+}
