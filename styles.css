@@ -738,6 +738,15 @@ body {
     white-space: nowrap;
 }
 
+.forwarded-info.editable {
+    cursor: pointer;
+    text-decoration: underline dotted;
+}
+
+.forwarded-info.editable:hover {
+    color: #e67e22;
+}
+
 /* Delete button */
 .delete-btn {
     width: 28px;

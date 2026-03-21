@@ -884,9 +884,10 @@
 
         if (task.status === 'forwarded' && task.forwardedTo) {
             var fwdInfo = document.createElement('span');
-            fwdInfo.className = 'forwarded-info';
+            fwdInfo.className = 'forwarded-info editable';
             fwdInfo.textContent = '\u2192 ' + task.forwardedTo;
-            fwdInfo.title = 'Forwarded to ' + formatDateDisplay(task.forwardedTo);
+            fwdInfo.title = 'Click to change forwarded date';
+            fwdInfo.addEventListener('click', function () { showEditForwardPicker(task.id, fwdInfo); });
             taskCol.appendChild(fwdInfo);
         }
 
@@ -969,6 +970,95 @@
     /* ===========================
        FORWARD PICKER
        =========================== */
+
+    function changeForwardDate(taskId, sourceDateStr) {
+        var srcDay = getDayData(sourceDateStr);
+        var task = srcDay.tasks.find(function (t) { return t.id === taskId; });
+        if (!task || task.status !== 'forwarded' || !task.forwardedTo) return;
+
+        var oldTarget = task.forwardedTo;
+        var oldTargetDay = getDayData(oldTarget);
+
+        // Find the copied task on the old target date (match by text and priority)
+        var copiedIdx = oldTargetDay.tasks.findIndex(function (t) {
+            return t.text === task.text && t.priority === task.priority && t.status === 'open';
+        });
+
+        return {
+            oldTarget: oldTarget,
+            apply: function (newTarget) {
+                if (newTarget === oldTarget) return;
+
+                // Move copied task from old target to new target
+                var newTargetDay = getDayData(newTarget);
+                if (copiedIdx >= 0) {
+                    var copiedTask = oldTargetDay.tasks.splice(copiedIdx, 1)[0];
+                    copiedTask.number = getNextNumber(newTargetDay.tasks, copiedTask.priority);
+                    newTargetDay.tasks.push(copiedTask);
+                } else {
+                    // Copied task not found (may have been edited); create a new one
+                    var newTask = {
+                        id: generateId(),
+                        priority: task.priority,
+                        number: getNextNumber(newTargetDay.tasks, task.priority),
+                        text: task.text,
+                        status: 'open',
+                        forwardedTo: null,
+                        createdAt: new Date().toISOString()
+                    };
+                    newTargetDay.tasks.push(newTask);
+                }
+
+                // Update source task's forwardedTo
+                task.forwardedTo = newTarget;
+                saveData();
+                renderDay();
+            }
+        };
+    }
+
+    function showEditForwardPicker(taskId, fwdInfoElement) {
+        var existing = document.querySelector('.forward-picker');
+        if (existing) existing.remove();
+
+        var srcDate = currentDate;
+        var change = changeForwardDate(taskId, srcDate);
+        if (!change) return;
+
+        var picker = document.createElement('div');
+        picker.className = 'forward-picker';
+
+        var label = document.createElement('span');
+        label.textContent = 'Change date to: ';
+
+        var dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.min = addDays(srcDate, 1);
+        dateInput.value = change.oldTarget;
+
+        var confirmBtn = document.createElement('button');
+        confirmBtn.className = 'fwd-confirm';
+        confirmBtn.textContent = 'Update';
+        confirmBtn.addEventListener('click', function () {
+            if (dateInput.value && dateInput.value > srcDate) {
+                change.apply(dateInput.value);
+                picker.remove();
+            }
+        });
+
+        var cancelBtn = document.createElement('button');
+        cancelBtn.className = 'fwd-cancel';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.addEventListener('click', function () { picker.remove(); });
+
+        picker.appendChild(label);
+        picker.appendChild(dateInput);
+        picker.appendChild(confirmBtn);
+        picker.appendChild(cancelBtn);
+
+        var row = fwdInfoElement.closest('.task-row');
+        row.after(picker);
+    }
 
     function showForwardPicker(taskId, rowElement) {
         var existing = document.querySelector('.forward-picker');
