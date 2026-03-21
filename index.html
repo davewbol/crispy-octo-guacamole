@@ -15,9 +15,12 @@
                 <span id="auth-label">Offline mode</span>
             </div>
             <div class="theme-selector">
-                <button class="theme-btn" data-theme="classic" title="Classic">&#9753;</button>
-                <button class="theme-btn" data-theme="light" title="Light">&#9788;</button>
-                <button class="theme-btn" data-theme="dark" title="Dark">&#9790;</button>
+                <button class="theme-toggle" id="theme-toggle" title="Change theme">&#9753;</button>
+                <div class="theme-dropdown hidden" id="theme-dropdown">
+                    <button class="theme-btn" data-theme="classic" title="Classic">&#9753; Classic</button>
+                    <button class="theme-btn" data-theme="light" title="Light">&#9788; Light</button>
+                    <button class="theme-btn" data-theme="dark" title="Dark">&#9790; Dark</button>
+                </div>
             </div>
             <div id="auth-actions">
                 <button id="sign-in-btn" class="auth-btn sign-in-btn">Sign in with Google</button>

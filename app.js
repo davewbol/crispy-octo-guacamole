@@ -938,19 +938,37 @@
         document.getElementById('sign-in-btn').addEventListener('click', signIn);
         document.getElementById('sign-out-btn').addEventListener('click', signOut);
 
-        // Theme buttons
+        // Theme toggle
+        var themeToggle = document.getElementById('theme-toggle');
+        var themeDropdown = document.getElementById('theme-dropdown');
+
+        themeToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            themeDropdown.classList.toggle('hidden');
+        });
+
         var themeBtns = document.querySelectorAll('.theme-btn');
         for (var i = 0; i < themeBtns.length; i++) {
             themeBtns[i].addEventListener('click', function () {
-                applyTheme(this.getAttribute('data-theme'));
-                data.settings.theme = this.getAttribute('data-theme');
+                var theme = this.getAttribute('data-theme');
+                applyTheme(theme);
+                data.settings.theme = theme;
                 saveData();
+                themeDropdown.classList.add('hidden');
             });
         }
+
+        document.addEventListener('click', function () {
+            themeDropdown.classList.add('hidden');
+        });
     }
+
+    var themeIcons = { classic: '\u2619', light: '\u263C', dark: '\u263E' };
 
     function applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);
+        var toggle = document.getElementById('theme-toggle');
+        if (toggle) toggle.textContent = themeIcons[theme] || themeIcons.classic;
         var btns = document.querySelectorAll('.theme-btn');
         for (var i = 0; i < btns.length; i++) {
             if (btns[i].getAttribute('data-theme') === theme) {
