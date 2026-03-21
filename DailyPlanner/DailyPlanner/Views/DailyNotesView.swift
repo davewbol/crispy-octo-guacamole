@@ -26,10 +26,8 @@ struct DailyNotesView: View {
                         .stroke(isFocused ? theme.borderPrimary : theme.borderSecondary, lineWidth: 1)
                 )
                 .focused($isFocused)
-                .onChange(of: isFocused) { _, focused in
-                    if !focused {
-                        viewModel.updateNotes(notes)
-                    }
+                .onChange(of: notes) { _, newValue in
+                    viewModel.updateNotes(newValue)
                 }
         }
         .padding(.horizontal, 12)
