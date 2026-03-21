@@ -658,17 +658,29 @@ body {
 }
 
 /* === Responsive === */
+
+/* Prevent horizontal overflow globally */
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+.planner {
+    width: 100%;
+}
+
 @media (max-width: 600px) {
     body {
-        padding: 8px 4px;
+        padding: 8px 2px;
     }
 
     .planner {
         border-radius: 0;
+        box-shadow: none;
     }
 
     .date-header {
-        padding: 14px 12px 10px;
+        padding: 14px 10px 10px;
         gap: 4px;
     }
 
@@ -676,31 +688,69 @@ body {
         font-size: 17px;
     }
 
-    .task-section {
-        margin-left: 8px;
-        margin-right: 8px;
+    .date-badge {
+        font-size: 10px;
     }
 
-    .task-list-header .col-number,
-    .task-list-header .col-priority {
-        display: none;
+    .task-section {
+        margin-left: 4px;
+        margin-right: 4px;
+        border-left-width: 2px;
+    }
+
+    .task-row {
+        padding: 8px 6px;
+        flex-wrap: wrap;
+    }
+
+    .col-priority {
+        width: 30px;
+    }
+
+    .col-number {
+        width: 22px;
+    }
+
+    .col-actions {
+        width: auto;
+        flex-shrink: 1;
+    }
+
+    .task-actions {
+        gap: 2px;
+    }
+
+    .status-btn,
+    .forward-btn,
+    .delete-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    .task-text {
+        font-size: 14px;
     }
 
     .add-task-form {
         flex-wrap: wrap;
+        padding: 10px 8px;
+        gap: 6px;
     }
 
     .priority-select {
-        width: 100%;
-    }
-
-    .task-input {
         flex: 1;
         min-width: 0;
     }
 
     .add-btn {
-        width: 100%;
+        flex: none;
+    }
+
+    .task-input {
+        flex-basis: 100%;
+        min-width: 0;
+        order: -1;
     }
 
     .nav-btn, .today-btn {
@@ -709,6 +759,35 @@ body {
     }
 
     .notes-section {
-        padding: 12px;
+        padding: 12px 10px;
+    }
+
+    .notes-textarea {
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    .task-input {
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    .forward-picker {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 6px 8px;
+    }
+
+    .forwarded-info {
+        font-size: 10px;
+    }
+
+    .notification {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+    .auth-bar-inner {
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: center;
     }
 }
