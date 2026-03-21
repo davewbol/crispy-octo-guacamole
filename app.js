@@ -20,7 +20,8 @@
             days: {},
             settings: {
                 lastVisitedDate: null,
-                autoRollover: true
+                autoRollover: true,
+                theme: 'classic'
             }
         };
     }
@@ -936,10 +937,33 @@
         // Auth buttons
         document.getElementById('sign-in-btn').addEventListener('click', signIn);
         document.getElementById('sign-out-btn').addEventListener('click', signOut);
+
+        // Theme buttons
+        var themeBtns = document.querySelectorAll('.theme-btn');
+        for (var i = 0; i < themeBtns.length; i++) {
+            themeBtns[i].addEventListener('click', function () {
+                applyTheme(this.getAttribute('data-theme'));
+                data.settings.theme = this.getAttribute('data-theme');
+                saveData();
+            });
+        }
+    }
+
+    function applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        var btns = document.querySelectorAll('.theme-btn');
+        for (var i = 0; i < btns.length; i++) {
+            if (btns[i].getAttribute('data-theme') === theme) {
+                btns[i].classList.add('active');
+            } else {
+                btns[i].classList.remove('active');
+            }
+        }
     }
 
     function init() {
         data = loadData();
+        applyTheme(data.settings.theme || 'classic');
 
         var hash = window.location.hash.slice(1);
         if (hash && /^\d{4}-\d{2}-\d{2}$/.test(hash)) {
