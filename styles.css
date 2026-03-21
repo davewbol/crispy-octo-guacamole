@@ -46,6 +46,10 @@
     --notes-label-color: #999;
     --fwd-cancel-bg: #fff;
     --fwd-cancel-color: #666;
+    --heatmap-empty: #e8e3da;
+    --heatmap-low: #c8e6c9;
+    --heatmap-mid: #66bb6a;
+    --heatmap-high: #2e7d32;
     --color-scheme: light;
 }
 
@@ -95,6 +99,10 @@
     --notes-label-color: #888;
     --fwd-cancel-bg: #fff;
     --fwd-cancel-color: #555;
+    --heatmap-empty: #e4e7ec;
+    --heatmap-low: #c8e6c9;
+    --heatmap-mid: #66bb6a;
+    --heatmap-high: #2e7d32;
     --color-scheme: light;
 }
 
@@ -144,6 +152,10 @@
     --notes-label-color: #666;
     --fwd-cancel-bg: #2a2a2a;
     --fwd-cancel-color: #999;
+    --heatmap-empty: #2a2a2a;
+    --heatmap-low: #1b5e20;
+    --heatmap-mid: #388e3c;
+    --heatmap-high: #4caf50;
     --color-scheme: dark;
 }
 
@@ -888,6 +900,126 @@ html, body {
     width: 100%;
 }
 
+/* === Weekly Heatmap === */
+.weekly-heatmap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.heatmap-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.heatmap-label {
+    font-size: 9px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.heatmap-day {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 2px solid transparent;
+}
+
+.heatmap-day:hover {
+    transform: scale(1.2);
+}
+
+.heatmap-day.is-today {
+    border-color: var(--text-primary);
+}
+
+.heatmap-day.is-current {
+    box-shadow: 0 0 0 1px var(--text-muted);
+}
+
+.heatmap-day.no-tasks { background: var(--heatmap-empty); opacity: 0.5; }
+.heatmap-day.pct-0    { background: var(--heatmap-empty); }
+.heatmap-day.pct-25   { background: var(--heatmap-low); }
+.heatmap-day.pct-50   { background: var(--heatmap-mid); }
+.heatmap-day.pct-75   { background: var(--heatmap-mid); }
+.heatmap-day.pct-100  { background: var(--heatmap-high); }
+
+/* === Streak Display === */
+.streak-display {
+    padding: 4px 20px 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.streak-display:empty {
+    display: none;
+}
+.streak-count {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* === Confetti Canvas === */
+#confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+}
+#confetti-canvas.active {
+    display: block;
+}
+
+/* === Micro-animations === */
+@keyframes status-pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.5); }
+    100% { transform: scale(1); }
+}
+
+@keyframes row-flash-green {
+    0%   { background-color: rgba(39, 174, 96, 0.18); }
+    100% { background-color: transparent; }
+}
+
+@keyframes row-flash-gray {
+    0%   { background-color: rgba(189, 195, 199, 0.25); }
+    100% { background-color: transparent; }
+}
+
+.anim-complete-pop {
+    animation: status-pop 300ms ease-out;
+}
+.anim-row-complete {
+    animation: row-flash-green 600ms ease-out;
+}
+.anim-row-cancel {
+    animation: row-flash-gray 600ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .anim-complete-pop,
+    .anim-row-complete,
+    .anim-row-cancel {
+        animation: none !important;
+    }
+}
+
 @media (max-width: 600px) {
     body {
         padding: 8px 2px;
@@ -1025,5 +1157,14 @@ html, body {
     .theme-btn {
         padding: 14px 16px;
         font-size: 16px;
+    }
+
+    .weekly-heatmap {
+        gap: 4px;
+        padding: 6px 10px;
+    }
+    .heatmap-day {
+        width: 20px;
+        height: 20px;
     }
 }

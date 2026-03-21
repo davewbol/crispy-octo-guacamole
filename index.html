@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <canvas id="confetti-canvas"></canvas>
     <!-- Auth bar -->
     <div class="auth-bar">
         <div class="auth-bar-inner">
@@ -48,8 +49,11 @@
             <button id="go-today" class="today-btn" title="Go to today">Today</button>
         </header>
 
+        <div id="weekly-heatmap" class="weekly-heatmap"></div>
+
         <!-- Task summary -->
         <div id="task-summary" class="task-summary"></div>
+        <div id="streak-display" class="streak-display"></div>
 
         <!-- Task list -->
         <div class="task-section">

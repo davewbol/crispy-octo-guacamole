@@ -409,9 +409,223 @@
         if (!task) return;
         var cycle = { open: 'completed', completed: 'cancelled', cancelled: 'open' };
         if (task.status === 'forwarded') return;
+        var wasAllComplete = isAllCompleted(day);
         task.status = cycle[task.status] || 'open';
         saveData();
         renderDay();
+        animateStatusChange(taskId, task.status);
+        if (!wasAllComplete && isAllCompleted(day)) {
+            triggerConfetti();
+        }
+    }
+
+    function animateStatusChange(taskId, newStatus) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var row = document.querySelector('.task-row[data-id="' + taskId + '"]');
+        if (!row) return;
+
+        function addAnim(el, cls) {
+            el.classList.remove(cls);
+            void el.offsetWidth;
+            el.classList.add(cls);
+            el.addEventListener('animationend', function handler() {
+                el.classList.remove(cls);
+                el.removeEventListener('animationend', handler);
+            });
+        }
+
+        if (newStatus === 'completed') {
+            var btn = row.querySelector('.status-btn');
+            if (btn) addAnim(btn, 'anim-complete-pop');
+            addAnim(row, 'anim-row-complete');
+        } else if (newStatus === 'cancelled') {
+            addAnim(row, 'anim-row-cancel');
+        }
+    }
+
+    function isAllCompleted(day) {
+        var actionable = day.tasks.filter(function (t) {
+            return t.status !== 'cancelled' && t.status !== 'forwarded';
+        });
+        if (actionable.length === 0) return false;
+        return actionable.every(function (t) { return t.status === 'completed'; });
+    }
+
+    function isDayCompleted(dateStr) {
+        var dayData = data.days[dateStr];
+        if (!dayData || !dayData.tasks || dayData.tasks.length === 0) return false;
+        return isAllCompleted(dayData);
+    }
+
+    function triggerConfetti() {
+        var canvas = document.getElementById('confetti-canvas');
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        var dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.classList.add('active');
+
+        var colors = ['#e74c3c', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#1abc9c', '#e67e22', '#f1c40f'];
+        var particles = [];
+        for (var i = 0; i < 60; i++) {
+            particles.push({
+                x: window.innerWidth * 0.5 + (Math.random() - 0.5) * 300,
+                y: window.innerHeight * 0.4,
+                vx: (Math.random() - 0.5) * 12,
+                vy: -Math.random() * 12 - 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: Math.random() * 5 + 3,
+                rotation: Math.random() * 360,
+                rotSpeed: (Math.random() - 0.5) * 10
+            });
+        }
+
+        var start = performance.now();
+        var duration = 2200;
+        var raf;
+
+        function frame(now) {
+            var elapsed = now - start;
+            if (elapsed > duration) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.classList.remove('active');
+                return;
+            }
+            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            var fade = elapsed > 1600 ? 1 - (elapsed - 1600) / 600 : 1;
+
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                p.vy += 0.25;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rotation += p.rotSpeed;
+
+                ctx.save();
+                ctx.globalAlpha = fade;
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+            }
+            raf = requestAnimationFrame(frame);
+        }
+        raf = requestAnimationFrame(frame);
+    }
+
+    function calculateStreak() {
+        var today = getTodayStr();
+        var checkDate = today;
+        var streak = 0;
+        var looked = 0;
+
+        while (looked < 400) {
+            var dayData = data.days[checkDate];
+            if (dayData && dayData.tasks && dayData.tasks.length > 0) {
+                if (isDayCompleted(checkDate)) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            checkDate = addDays(checkDate, -1);
+            looked++;
+        }
+        return streak;
+    }
+
+    function renderStreak() {
+        var el = document.getElementById('streak-display');
+        if (!el) return;
+        var streak = calculateStreak();
+        if (streak > 0) {
+            el.innerHTML = '<span>\uD83D\uDD25</span> <span class="streak-count">' + streak + '</span> day' + (streak !== 1 ? 's' : '') + ' streak';
+        } else {
+            el.textContent = '';
+        }
+    }
+
+    function getWeekDates(dateStr) {
+        var d = parseDate(dateStr);
+        var dayOfWeek = d.getDay();
+        var mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        var monday = new Date(d);
+        monday.setDate(d.getDate() + mondayOffset);
+        var dates = [];
+        for (var i = 0; i < 7; i++) {
+            var day = new Date(monday);
+            day.setDate(monday.getDate() + i);
+            dates.push(toDateStr(day));
+        }
+        return dates;
+    }
+
+    function getCompletionPercent(dateStr) {
+        var dayData = data.days[dateStr];
+        if (!dayData || !dayData.tasks || dayData.tasks.length === 0) return -1;
+        var total = dayData.tasks.length;
+        var completed = dayData.tasks.filter(function (t) { return t.status === 'completed'; }).length;
+        return Math.round((completed / total) * 100);
+    }
+
+    function renderHeatmap() {
+        var container = document.getElementById('weekly-heatmap');
+        if (!container) return;
+        container.innerHTML = '';
+
+        var weekDates = getWeekDates(currentDate);
+        var today = getTodayStr();
+        var dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+        for (var i = 0; i < 7; i++) {
+            var dateStr = weekDates[i];
+            var pct = getCompletionPercent(dateStr);
+
+            var col = document.createElement('div');
+            col.className = 'heatmap-col';
+
+            var label = document.createElement('div');
+            label.className = 'heatmap-label';
+            label.textContent = dayLabels[i];
+
+            var square = document.createElement('div');
+            square.className = 'heatmap-day';
+            square.title = formatDateDisplay(dateStr) + (pct >= 0 ? ' \u2014 ' + pct + '%' : ' \u2014 no tasks');
+
+            if (pct < 0) {
+                square.classList.add('no-tasks');
+            } else if (pct === 0) {
+                square.classList.add('pct-0');
+            } else if (pct <= 25) {
+                square.classList.add('pct-25');
+            } else if (pct <= 50) {
+                square.classList.add('pct-50');
+            } else if (pct < 100) {
+                square.classList.add('pct-75');
+            } else {
+                square.classList.add('pct-100');
+            }
+
+            if (dateStr === today) {
+                square.classList.add('is-today');
+            }
+            if (dateStr === currentDate) {
+                square.classList.add('is-current');
+            }
+
+            (function (ds) {
+                square.addEventListener('click', function () {
+                    navigateToDate(ds);
+                });
+            })(dateStr);
+
+            col.appendChild(label);
+            col.appendChild(square);
+            container.appendChild(col);
+        }
     }
 
     function changePriority(taskId, newPriority) {
@@ -435,10 +649,14 @@
         var day = getDayData(currentDate);
         var idx = day.tasks.findIndex(function (t) { return t.id === taskId; });
         if (idx !== -1) {
+            var wasAllComplete = isAllCompleted(day);
             var removed = day.tasks.splice(idx, 1)[0];
             renumberPriority(day.tasks, removed.priority);
             saveData();
             renderDay();
+            if (!wasAllComplete && isAllCompleted(day)) {
+                triggerConfetti();
+            }
         }
     }
 
@@ -475,6 +693,8 @@
         var task = srcDay.tasks.find(function (t) { return t.id === taskId; });
         if (!task) return;
 
+        var wasAllComplete = isAllCompleted(srcDay);
+
         task.status = 'forwarded';
         task.forwardedTo = targetDateStr;
 
@@ -490,6 +710,10 @@
         };
         targetDay.tasks.push(newTask);
         saveData();
+
+        if (!wasAllComplete && isAllCompleted(srcDay)) {
+            triggerConfetti();
+        }
     }
 
     /* ===========================
@@ -607,6 +831,9 @@
         notesEl.value = day.notes || '';
 
         document.getElementById('date-picker').value = currentDate;
+
+        renderStreak();
+        renderHeatmap();
     }
 
     function createTaskRow(task) {
