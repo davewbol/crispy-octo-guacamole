@@ -156,6 +156,43 @@ class PlannerViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Change Forward Date
+
+    func changeForwardDate(_ taskId: String, to newTarget: String) {
+        let sourceDate = currentDate
+        guard var sourceDay = data.days[sourceDate] else { return }
+        guard let idx = sourceDay.tasks.firstIndex(where: { $0.id == taskId }) else { return }
+        let task = sourceDay.tasks[idx]
+        guard task.status == "forwarded", let oldTarget = task.forwardedTo else { return }
+        guard newTarget != oldTarget else { return }
+
+        // Find the copied task on the old target date (match by text, priority, and open status)
+        var oldTargetDay = data.days[oldTarget] ?? DayData()
+        let copiedIdx = oldTargetDay.tasks.firstIndex(where: {
+            $0.text == task.text && $0.priority == task.priority && $0.status == "open"
+        })
+
+        var newTargetDay = data.days[newTarget] ?? DayData()
+        if let copiedIdx = copiedIdx {
+            var copiedTask = oldTargetDay.tasks.remove(at: copiedIdx)
+            copiedTask.number = newTargetDay.nextNumber(for: copiedTask.priority)
+            newTargetDay.tasks.append(copiedTask)
+        } else {
+            let newTask = PlannerTask.create(
+                priority: task.priority,
+                number: newTargetDay.nextNumber(for: task.priority),
+                text: task.text
+            )
+            newTargetDay.tasks.append(newTask)
+        }
+
+        sourceDay.tasks[idx].forwardedTo = newTarget
+        data.days[sourceDate] = sourceDay
+        data.days[oldTarget] = oldTargetDay
+        data.days[newTarget] = newTargetDay
+        save()
+    }
+
     // MARK: - Notes
 
     func updateNotes(_ text: String) {

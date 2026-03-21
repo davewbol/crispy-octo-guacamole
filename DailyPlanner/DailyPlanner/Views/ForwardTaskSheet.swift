@@ -48,3 +48,57 @@ struct ForwardTaskSheet: View {
         .presentationDetents([.medium, .large])
     }
 }
+
+struct EditForwardDateSheet: View {
+    let theme: AppTheme
+    let currentTarget: String
+    let sourceDate: String
+    let onUpdate: (String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedDate = Date()
+
+    private var minDate: Date {
+        Calendar.current.date(byAdding: .day, value: 1, to: DateHelpers.parseDate(sourceDate)) ?? Date()
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                Text("Change forwarded date")
+                    .font(.system(size: 15))
+                    .foregroundStyle(theme.textSecondary)
+
+                DatePicker(
+                    "New date",
+                    selection: $selectedDate,
+                    in: minDate...,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .padding(.horizontal)
+
+                Spacer()
+            }
+            .padding(.top)
+            .navigationTitle("Edit Forward Date")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Update") {
+                        let dateStr = DateHelpers.toDateStr(selectedDate)
+                        onUpdate(dateStr)
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .onAppear {
+            selectedDate = DateHelpers.parseDate(currentTarget)
+        }
+    }
+}

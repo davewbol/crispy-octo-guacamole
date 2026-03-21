@@ -8,6 +8,7 @@ struct TaskRowView: View {
     @State private var editingText: String = ""
     @State private var isEditing = false
     @State private var showForwardSheet = false
+    @State private var showEditForwardSheet = false
     @State private var showDeleteConfirm = false
     @State private var showPriorityMenu = false
 
@@ -68,11 +69,15 @@ struct TaskRowView: View {
                     }
             }
 
-            // Forwarded-to indicator
+            // Forwarded-to indicator (tappable to edit date)
             if let fwd = task.forwardedTo {
-                Text("→ \(fwd)")
-                    .font(.system(size: 11))
-                    .foregroundStyle(AppTheme.statusForwarded)
+                Button {
+                    showEditForwardSheet = true
+                } label: {
+                    Text("→ \(fwd)")
+                        .font(.system(size: 11))
+                        .foregroundStyle(AppTheme.statusForwarded)
+                }
             }
 
             // Status button
@@ -99,6 +104,15 @@ struct TaskRowView: View {
         .sheet(isPresented: $showForwardSheet) {
             ForwardTaskSheet(theme: theme) { targetDate in
                 viewModel.forwardTask(task.id, to: targetDate)
+            }
+        }
+        .sheet(isPresented: $showEditForwardSheet) {
+            EditForwardDateSheet(
+                theme: theme,
+                currentTarget: task.forwardedTo ?? "",
+                sourceDate: viewModel.currentDate
+            ) { newDate in
+                viewModel.changeForwardDate(task.id, to: newDate)
             }
         }
         .alert("Delete Task", isPresented: $showDeleteConfirm) {
