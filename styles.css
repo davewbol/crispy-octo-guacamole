@@ -243,13 +243,13 @@ body {
 }
 
 .theme-toggle {
-    width: 34px;
-    height: 30px;
+    width: 44px;
+    height: 40px;
     border: 1px solid var(--border-primary);
     border-radius: 4px;
     background: var(--bg-button);
     cursor: pointer;
-    font-size: 16px;
+    font-size: 20px;
     color: var(--text-secondary);
     display: flex;
     align-items: center;
@@ -1005,9 +1005,17 @@ html, body {
     }
 
     .auth-bar-inner {
-        flex-wrap: wrap;
-        gap: 4px;
-        justify-content: center;
+        flex-wrap: nowrap;
+        gap: 6px;
+    }
+
+    .auth-status {
+        flex: 1;
+        min-width: 0;
+    }
+
+    #auth-actions {
+        flex-shrink: 0;
     }
 
     .theme-toggle {
