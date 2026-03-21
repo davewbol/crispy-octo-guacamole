@@ -64,11 +64,7 @@ struct EditForwardDateSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                Text("Change forwarded date")
-                    .font(.system(size: 15))
-                    .foregroundStyle(theme.textSecondary)
-
+            VStack(spacing: 0) {
                 DatePicker(
                     "New date",
                     selection: $selectedDate,
@@ -80,7 +76,6 @@ struct EditForwardDateSheet: View {
 
                 Spacer()
             }
-            .padding(.top)
             .navigationTitle("Edit Forward Date")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
