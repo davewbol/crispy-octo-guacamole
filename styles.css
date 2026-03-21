@@ -984,7 +984,8 @@ html, body {
     }
 
     .theme-btn {
-        width: 34px;
-        height: 30px;
+        width: 44px;
+        height: 40px;
+        font-size: 20px;
     }
 }
