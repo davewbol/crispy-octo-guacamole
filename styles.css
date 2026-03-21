@@ -338,6 +338,18 @@ body {
     transition: opacity 0.3s ease;
 }
 
+.notification-link {
+    color: var(--text-notification);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: 2px;
+}
+
+.notification-link:hover {
+    opacity: 0.8;
+}
+
 .notification-close {
     background: none;
     border: none;

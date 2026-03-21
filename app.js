@@ -1080,9 +1080,15 @@
         confirmBtn.textContent = 'Forward';
         confirmBtn.addEventListener('click', function () {
             if (dateInput.value && dateInput.value > currentDate) {
-                forwardTask(taskId, dateInput.value);
+                var targetDate = dateInput.value;
+                forwardTask(taskId, targetDate);
                 picker.remove();
                 renderDay();
+                showNotification(
+                    'Task forwarded to ' + formatDateDisplay(targetDate) + '. ',
+                    'Go to that date',
+                    function () { navigateToDate(targetDate); }
+                );
             }
         });
 
@@ -1158,10 +1164,28 @@
        NOTIFICATION
        =========================== */
 
-    function showNotification(text) {
+    function showNotification(text, linkText, linkAction) {
         var el = document.getElementById('notification');
         var textEl = document.getElementById('notification-text');
         textEl.textContent = text;
+
+        // Remove any existing link
+        var existingLink = el.querySelector('.notification-link');
+        if (existingLink) existingLink.remove();
+
+        if (linkText && linkAction) {
+            var link = document.createElement('a');
+            link.className = 'notification-link';
+            link.href = '#';
+            link.textContent = linkText;
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                el.classList.add('hidden');
+                linkAction();
+            });
+            textEl.after(link);
+        }
+
         el.classList.remove('hidden');
         setTimeout(function () { el.classList.add('hidden'); }, 6000);
     }
