@@ -11,6 +11,13 @@
     let syncEnabled = false;
     let syncDebounceTimer = null;
 
+    /* Google Calendar state */
+    const GCAL_API_KEY = firebaseConfig.apiKey;
+    const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+    let gCalTokenClient = null;
+    let gCalAccessToken = null;
+    let calendarEvents = [];
+
     /* ===========================
        DATA LAYER
        =========================== */
@@ -92,7 +99,15 @@
             return;
         }
         var provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider).catch(function (err) {
+        provider.addScope(GCAL_SCOPES);
+        firebase.auth().signInWithPopup(provider).then(function (result) {
+            // Extract the Google OAuth access token for Calendar API
+            if (result.credential && result.credential.accessToken) {
+                gCalAccessToken = result.credential.accessToken;
+                updateCalendarSyncUI(true);
+                fetchCalendarEvents();
+            }
+        }).catch(function (err) {
             console.error('Sign-in failed:', err);
             showNotification('Sign-in failed: ' + err.message);
         });
@@ -766,6 +781,12 @@
         currentDate = dateStr;
         window.location.hash = dateStr;
         renderDay();
+        if (gCalAccessToken) {
+            fetchCalendarEvents();
+        } else {
+            calendarEvents = [];
+            renderCalendarView();
+        }
     }
 
     function goToPreviousDay() {
@@ -1272,6 +1293,12 @@
             if (hash && /^\d{4}-\d{2}-\d{2}$/.test(hash) && hash !== currentDate) {
                 currentDate = hash;
                 renderDay();
+                if (gCalAccessToken) {
+                    fetchCalendarEvents();
+                } else {
+                    calendarEvents = [];
+                    renderCalendarView();
+                }
             }
         });
 
@@ -1320,6 +1347,328 @@
         }
     }
 
+    /* ===========================
+       GOOGLE CALENDAR INTEGRATION
+       =========================== */
+
+    function initGoogleCalendar() {
+        // Initialize the GIS token client for calendar access
+        if (typeof google === 'undefined' || !google.accounts) return;
+
+        gCalTokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: firebaseConfig.clientId || extractClientId(),
+            scope: GCAL_SCOPES,
+            callback: function (tokenResponse) {
+                if (tokenResponse.error) {
+                    console.error('Calendar auth error:', tokenResponse.error);
+                    return;
+                }
+                gCalAccessToken = tokenResponse.access_token;
+                updateCalendarSyncUI(true);
+                fetchCalendarEvents();
+            }
+        });
+    }
+
+    function extractClientId() {
+        // Derive OAuth client ID from Firebase config's authDomain
+        // For Firebase projects, the Web client ID is in the format:
+        // {messagingSenderId}-{hash}.apps.googleusercontent.com
+        // But we need the actual OAuth client ID from the Firebase project
+        // Users should set firebaseConfig.clientId; fall back to discovery
+        return firebaseConfig.messagingSenderId + '-' +
+               firebaseConfig.appId.split(':')[3].substring(0, 12) +
+               '.apps.googleusercontent.com';
+    }
+
+    function connectGoogleCalendar() {
+        if (!currentUser) {
+            showNotification('Please sign in with Google first to connect your calendar.');
+            return;
+        }
+
+        // Try using the Firebase auth credential first
+        var credential = currentUser.getIdToken ? null : null;
+
+        // Use the access token from Firebase Auth if available
+        if (currentUser.stsTokenManager_ && currentUser.stsTokenManager_.accessToken) {
+            gCalAccessToken = currentUser.stsTokenManager_.accessToken;
+            fetchCalendarEvents();
+            return;
+        }
+
+        // Try getting a fresh token through Firebase
+        var currentProvider = currentUser.providerData && currentUser.providerData[0];
+        if (currentProvider && currentProvider.providerId === 'google.com') {
+            // Re-auth to get calendar scope token
+            var provider = new firebase.auth.GoogleAuthProvider();
+            provider.addScope(GCAL_SCOPES);
+            firebase.auth().currentUser.getIdToken(true).then(function () {
+                // Try using GIS token client as fallback
+                if (gCalTokenClient) {
+                    gCalTokenClient.requestAccessToken({ prompt: '' });
+                } else {
+                    // Re-sign in to get the scoped token
+                    firebase.auth().signInWithPopup(provider).then(function (result) {
+                        if (result.credential) {
+                            gCalAccessToken = result.credential.accessToken;
+                            updateCalendarSyncUI(true);
+                            fetchCalendarEvents();
+                        }
+                    }).catch(function (err) {
+                        console.error('Calendar re-auth failed:', err);
+                        showNotification('Could not connect calendar. Please try signing out and back in.');
+                    });
+                }
+            });
+            return;
+        }
+
+        // Use GIS token client
+        if (gCalTokenClient) {
+            gCalTokenClient.requestAccessToken({ prompt: 'consent' });
+        } else {
+            showNotification('Google Calendar API not available. Please reload the page.');
+        }
+    }
+
+    function fetchCalendarEvents() {
+        if (!gCalAccessToken) return;
+
+        var dateObj = parseDate(currentDate);
+        var timeMin = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0).toISOString();
+        var timeMax = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 23, 59, 59).toISOString();
+
+        var url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events' +
+            '?timeMin=' + encodeURIComponent(timeMin) +
+            '&timeMax=' + encodeURIComponent(timeMax) +
+            '&singleEvents=true' +
+            '&orderBy=startTime' +
+            '&maxResults=50';
+
+        fetch(url, {
+            headers: { 'Authorization': 'Bearer ' + gCalAccessToken }
+        })
+        .then(function (res) {
+            if (res.status === 401) {
+                // Token expired, try refreshing
+                gCalAccessToken = null;
+                updateCalendarSyncUI(false);
+                return null;
+            }
+            return res.json();
+        })
+        .then(function (json) {
+            if (!json) return;
+            calendarEvents = (json.items || []).map(function (evt) {
+                return {
+                    id: evt.id,
+                    title: evt.summary || '(No title)',
+                    location: evt.location || '',
+                    start: evt.start.dateTime || evt.start.date,
+                    end: evt.end.dateTime || evt.end.date,
+                    isAllDay: !evt.start.dateTime,
+                    hangoutLink: evt.hangoutLink || '',
+                    conferenceData: evt.conferenceData || null
+                };
+            });
+            renderCalendarView();
+            syncCalendarEventsToTasks();
+        })
+        .catch(function (err) {
+            console.error('Failed to fetch calendar events:', err);
+        });
+    }
+
+    function syncCalendarEventsToTasks() {
+        if (calendarEvents.length === 0) return;
+
+        var day = getDayData(currentDate);
+        var addedCount = 0;
+
+        for (var i = 0; i < calendarEvents.length; i++) {
+            var evt = calendarEvents[i];
+            if (evt.isAllDay) continue;
+
+            // Check if a task already exists for this calendar event
+            var calTag = '[cal:' + evt.id + ']';
+            var exists = day.tasks.some(function (t) {
+                return t.text.indexOf(calTag) !== -1 || t.calendarEventId === evt.id;
+            });
+
+            if (!exists) {
+                var startTime = new Date(evt.start);
+                var timeStr = startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                var meetingText = timeStr + ' — ' + evt.title;
+                if (evt.location) meetingText += ' (' + evt.location + ')';
+
+                var task = {
+                    id: generateId(),
+                    priority: 'B',
+                    number: getNextNumber(day.tasks, 'B'),
+                    text: meetingText,
+                    status: 'open',
+                    forwardedTo: null,
+                    createdAt: new Date().toISOString(),
+                    calendarEventId: evt.id
+                };
+                day.tasks.push(task);
+                addedCount++;
+            }
+        }
+
+        if (addedCount > 0) {
+            saveData();
+            renderDay();
+            showNotification(addedCount + ' meeting' + (addedCount > 1 ? 's' : '') + ' synced from Google Calendar.');
+        }
+    }
+
+    function updateCalendarSyncUI(connected) {
+        var btn = document.getElementById('calendar-sync-btn');
+        var label = document.getElementById('calendar-sync-label');
+        if (!btn || !label) return;
+
+        if (connected) {
+            label.textContent = 'Synced';
+            btn.classList.add('connected');
+            btn.title = 'Google Calendar connected — click to refresh';
+        } else {
+            label.textContent = 'Connect Calendar';
+            btn.classList.remove('connected');
+            btn.title = 'Connect Google Calendar';
+        }
+    }
+
+    /* ===========================
+       CALENDAR DAY VIEW
+       =========================== */
+
+    function renderCalendarView() {
+        var timeline = document.getElementById('calendar-timeline');
+        if (!timeline) return;
+        timeline.innerHTML = '';
+
+        // Update header
+        var dateObj = parseDate(currentDate);
+        var dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        var dayNameEl = document.getElementById('calendar-day-name');
+        var dayNumEl = document.getElementById('calendar-day-number');
+        if (dayNameEl) dayNameEl.textContent = dayNames[dateObj.getDay()];
+        if (dayNumEl) dayNumEl.textContent = dateObj.getDate();
+
+        // Create 24-hour timeline (show 12AM to 11PM)
+        var startHour = 0;
+        var endHour = 23;
+
+        for (var h = startHour; h <= endHour; h++) {
+            var slot = document.createElement('div');
+            slot.className = 'calendar-hour-slot';
+            slot.dataset.hour = h;
+
+            var label = document.createElement('div');
+            label.className = 'calendar-hour-label';
+            if (h === 0) {
+                label.textContent = '12 AM';
+            } else if (h < 12) {
+                label.textContent = h + ' AM';
+            } else if (h === 12) {
+                label.textContent = '12 PM';
+            } else {
+                label.textContent = (h - 12) + ' PM';
+            }
+
+            var content = document.createElement('div');
+            content.className = 'calendar-hour-content';
+
+            slot.appendChild(label);
+            slot.appendChild(content);
+            timeline.appendChild(slot);
+        }
+
+        // Place events on the timeline
+        for (var i = 0; i < calendarEvents.length; i++) {
+            var evt = calendarEvents[i];
+            if (evt.isAllDay) continue;
+
+            var evtStart = new Date(evt.start);
+            var evtEnd = new Date(evt.end);
+
+            var startMinutes = evtStart.getHours() * 60 + evtStart.getMinutes();
+            var endMinutes = evtEnd.getHours() * 60 + evtEnd.getMinutes();
+            if (endMinutes <= startMinutes) endMinutes = startMinutes + 30; // minimum 30min display
+
+            var slotHeight = 60; // pixels per hour
+            var topPx = (startMinutes / 60) * slotHeight;
+            var heightPx = ((endMinutes - startMinutes) / 60) * slotHeight;
+            if (heightPx < 24) heightPx = 24;
+
+            var evtEl = document.createElement('div');
+            evtEl.className = 'calendar-event';
+            evtEl.style.top = topPx + 'px';
+            evtEl.style.height = heightPx + 'px';
+
+            var evtTitle = document.createElement('div');
+            evtTitle.className = 'calendar-event-title';
+            evtTitle.textContent = evt.title;
+
+            var evtTime = document.createElement('div');
+            evtTime.className = 'calendar-event-time';
+            var startTimeStr = evtStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            evtTime.textContent = startTimeStr;
+            if (evt.location) {
+                evtTime.textContent += ', ' + evt.location;
+            }
+
+            evtEl.appendChild(evtTitle);
+            evtEl.appendChild(evtTime);
+
+            // Append to the events container in timeline
+            var eventsContainer = timeline.querySelector('.calendar-events-container');
+            if (!eventsContainer) {
+                eventsContainer = document.createElement('div');
+                eventsContainer.className = 'calendar-events-container';
+                timeline.appendChild(eventsContainer);
+            }
+            eventsContainer.appendChild(evtEl);
+        }
+
+        // Add current time indicator if viewing today
+        if (currentDate === getTodayStr()) {
+            var now = new Date();
+            var nowMinutes = now.getHours() * 60 + now.getMinutes();
+            var nowTop = (nowMinutes / 60) * 60; // 60px per hour
+
+            var timeIndicator = document.createElement('div');
+            timeIndicator.className = 'calendar-time-indicator';
+            timeIndicator.style.top = nowTop + 'px';
+
+            var timeDot = document.createElement('div');
+            timeDot.className = 'calendar-time-dot';
+
+            var timeLine = document.createElement('div');
+            timeLine.className = 'calendar-time-line';
+
+            timeIndicator.appendChild(timeDot);
+            timeIndicator.appendChild(timeLine);
+
+            var indicatorContainer = timeline.querySelector('.calendar-events-container');
+            if (!indicatorContainer) {
+                indicatorContainer = document.createElement('div');
+                indicatorContainer.className = 'calendar-events-container';
+                timeline.appendChild(indicatorContainer);
+            }
+            indicatorContainer.appendChild(timeIndicator);
+
+            // Auto-scroll to current time
+            var scrollTarget = Math.max(0, nowTop - 200);
+            timeline.scrollTop = scrollTarget;
+        } else {
+            // Scroll to 8 AM for non-today dates
+            timeline.scrollTop = 8 * 60;
+        }
+    }
+
     function init() {
         data = loadData();
         applyTheme(data.settings.theme || 'classic');
@@ -1332,9 +1681,25 @@
         checkAndRunRollover();
         bindEvents();
         renderDay();
+        renderCalendarView();
+
+        // Calendar sync button
+        var calSyncBtn = document.getElementById('calendar-sync-btn');
+        if (calSyncBtn) {
+            calSyncBtn.addEventListener('click', function () {
+                if (gCalAccessToken) {
+                    fetchCalendarEvents();
+                } else {
+                    connectGoogleCalendar();
+                }
+            });
+        }
 
         // Initialize Firebase (async — won't block first render)
         initFirebase();
+
+        // Initialize Google Calendar API
+        initGoogleCalendar();
     }
 
     if (document.readyState === 'loading') {

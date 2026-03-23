@@ -30,57 +30,76 @@
         </div>
     </div>
 
-    <div class="planner">
-        <!-- Rollover notification -->
-        <div id="notification" class="notification hidden">
-            <span id="notification-text"></span>
-            <button id="notification-close" class="notification-close">&times;</button>
+    <div class="planner-layout">
+        <div class="planner">
+            <!-- Rollover notification -->
+            <div id="notification" class="notification hidden">
+                <span id="notification-text"></span>
+                <button id="notification-close" class="notification-close">&times;</button>
+            </div>
+
+            <!-- Date navigation header -->
+            <header class="date-header">
+                <button id="prev-day" class="nav-btn" title="Previous day">&larr;</button>
+                <div class="date-display">
+                    <h1 id="current-date-label">Loading...</h1>
+                    <span id="date-badge" class="date-badge hidden"></span>
+                    <input type="date" id="date-picker" class="date-picker-hidden">
+                </div>
+                <button id="next-day" class="nav-btn" title="Next day">&rarr;</button>
+                <button id="go-today" class="today-btn" title="Go to today">Today</button>
+            </header>
+
+            <div id="weekly-heatmap" class="weekly-heatmap"></div>
+
+            <!-- Task summary -->
+            <div id="task-summary" class="task-summary"></div>
+            <div id="streak-display" class="streak-display"></div>
+
+            <!-- Task list -->
+            <div class="task-section">
+                <div class="task-list-header">
+                    <span class="col-priority">Pri</span>
+                    <span class="col-number">#</span>
+                    <span class="col-task">Task</span>
+                    <span class="col-actions">Status</span>
+                </div>
+                <div id="task-list" class="task-list"></div>
+
+                <!-- Add task form -->
+                <form id="add-task-form" class="add-task-form">
+                    <select id="new-task-priority" class="priority-select" title="Priority">
+                        <option value="A">A — Vital</option>
+                        <option value="B">B — Important</option>
+                        <option value="C">C — Nice to do</option>
+                    </select>
+                    <input type="text" id="new-task-text" class="task-input" placeholder="Add a new task..." required>
+                    <button type="submit" class="add-btn">+ Add</button>
+                </form>
+            </div>
+
+            <!-- Daily notes -->
+            <div class="notes-section">
+                <label for="daily-notes" class="notes-label">Notes</label>
+                <textarea id="daily-notes" class="notes-textarea" placeholder="Daily notes, appointments, thoughts..."></textarea>
+            </div>
         </div>
 
-        <!-- Date navigation header -->
-        <header class="date-header">
-            <button id="prev-day" class="nav-btn" title="Previous day">&larr;</button>
-            <div class="date-display">
-                <h1 id="current-date-label">Loading...</h1>
-                <span id="date-badge" class="date-badge hidden"></span>
-                <input type="date" id="date-picker" class="date-picker-hidden">
+        <!-- Calendar Day View -->
+        <div class="calendar-panel" id="calendar-panel">
+            <div class="calendar-panel-header">
+                <div class="calendar-day-info">
+                    <span class="calendar-day-name" id="calendar-day-name">MON</span>
+                    <span class="calendar-day-number" id="calendar-day-number">23</span>
+                </div>
+                <button class="calendar-sync-btn" id="calendar-sync-btn" title="Sync Google Calendar">
+                    <span class="calendar-sync-icon">&#128197;</span>
+                    <span id="calendar-sync-label">Connect Calendar</span>
+                </button>
             </div>
-            <button id="next-day" class="nav-btn" title="Next day">&rarr;</button>
-            <button id="go-today" class="today-btn" title="Go to today">Today</button>
-        </header>
-
-        <div id="weekly-heatmap" class="weekly-heatmap"></div>
-
-        <!-- Task summary -->
-        <div id="task-summary" class="task-summary"></div>
-        <div id="streak-display" class="streak-display"></div>
-
-        <!-- Task list -->
-        <div class="task-section">
-            <div class="task-list-header">
-                <span class="col-priority">Pri</span>
-                <span class="col-number">#</span>
-                <span class="col-task">Task</span>
-                <span class="col-actions">Status</span>
+            <div class="calendar-timeline" id="calendar-timeline">
+                <!-- Hourly slots and events rendered by JS -->
             </div>
-            <div id="task-list" class="task-list"></div>
-
-            <!-- Add task form -->
-            <form id="add-task-form" class="add-task-form">
-                <select id="new-task-priority" class="priority-select" title="Priority">
-                    <option value="A">A — Vital</option>
-                    <option value="B">B — Important</option>
-                    <option value="C">C — Nice to do</option>
-                </select>
-                <input type="text" id="new-task-text" class="task-input" placeholder="Add a new task..." required>
-                <button type="submit" class="add-btn">+ Add</button>
-            </form>
-        </div>
-
-        <!-- Daily notes -->
-        <div class="notes-section">
-            <label for="daily-notes" class="notes-label">Notes</label>
-            <textarea id="daily-notes" class="notes-textarea" placeholder="Daily notes, appointments, thoughts..."></textarea>
         </div>
     </div>
 
@@ -88,6 +107,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <!-- Google API client for Calendar access -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
 
     <!-- Firebase config — REPLACE with your own project config -->
     <script src="firebase-config.js"></script>
