@@ -305,7 +305,9 @@
             signInBtn.classList.add('hidden');
             signOutBtn.classList.remove('hidden');
             if (calSyncBtn) calSyncBtn.classList.remove('hidden');
-            authLabel.textContent = user.displayName || user.email || 'Signed in';
+            var firstName = (user.displayName || '').split(' ')[0];
+            var email = user.email || '';
+            authLabel.textContent = email && firstName ? email + ' (' + firstName + ')' : email || user.displayName || 'Signed in';
         } else {
             signInBtn.classList.remove('hidden');
             signOutBtn.classList.add('hidden');
