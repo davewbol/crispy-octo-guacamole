@@ -1419,7 +1419,14 @@
                 gCalAccessToken = null;
                 sessionStorage.removeItem('gCalAccessToken');
                 updateCalendarSyncUI(false);
+                showNotification('Calendar token expired. Please reconnect your calendar.');
                 return null;
+            }
+            if (!res.ok) {
+                return res.json().then(function (errJson) {
+                    var msg = (errJson.error && errJson.error.message) || ('HTTP ' + res.status);
+                    throw new Error(msg);
+                });
             }
             return res.json();
         })
@@ -1439,9 +1446,13 @@
             });
             renderCalendarView();
             syncCalendarEventsToTasks();
+            if (calendarEvents.length === 0) {
+                showNotification('No calendar events found for today.');
+            }
         })
         .catch(function (err) {
             console.error('Failed to fetch calendar events:', err);
+            showNotification('Calendar sync error: ' + err.message);
         });
     }
 
