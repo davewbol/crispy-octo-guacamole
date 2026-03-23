@@ -24,6 +24,10 @@
                 </div>
             </div>
             <div id="auth-actions">
+                <button id="calendar-sync-btn" class="auth-btn calendar-sync-btn hidden" title="Sync Google Calendar">
+                    <span class="calendar-sync-icon">&#128197;</span>
+                    <span id="calendar-sync-label">Connect Calendar</span>
+                </button>
                 <button id="sign-in-btn" class="auth-btn sign-in-btn">Sign in with Google</button>
                 <button id="sign-out-btn" class="auth-btn sign-out-btn hidden">Sign out</button>
             </div>
@@ -92,10 +96,6 @@
                     <span class="calendar-day-name" id="calendar-day-name">MON</span>
                     <span class="calendar-day-number" id="calendar-day-number">23</span>
                 </div>
-                <button class="calendar-sync-btn" id="calendar-sync-btn" title="Sync Google Calendar">
-                    <span class="calendar-sync-icon">&#128197;</span>
-                    <span id="calendar-sync-label">Connect Calendar</span>
-                </button>
             </div>
             <div class="calendar-timeline" id="calendar-timeline">
                 <!-- Hourly slots and events rendered by JS -->

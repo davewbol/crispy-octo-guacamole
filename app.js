@@ -287,14 +287,17 @@
         var signInBtn = document.getElementById('sign-in-btn');
         var signOutBtn = document.getElementById('sign-out-btn');
         var authLabel = document.getElementById('auth-label');
+        var calSyncBtn = document.getElementById('calendar-sync-btn');
 
         if (user) {
             signInBtn.classList.add('hidden');
             signOutBtn.classList.remove('hidden');
+            if (calSyncBtn) calSyncBtn.classList.remove('hidden');
             authLabel.textContent = user.displayName || user.email || 'Signed in';
         } else {
             signInBtn.classList.remove('hidden');
             signOutBtn.classList.add('hidden');
+            if (calSyncBtn) calSyncBtn.classList.add('hidden');
             authLabel.textContent = 'Offline mode';
             setSyncStatus('offline');
         }

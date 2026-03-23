@@ -245,6 +245,12 @@ body {
     color: #c0392b;
 }
 
+#auth-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .hidden {
     display: none !important;
 }
@@ -975,23 +981,11 @@ body {
     color: #fff;
 }
 
+/* Calendar sync button (in auth bar) */
 .calendar-sync-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: 1px solid var(--border-primary);
-    border-radius: 4px;
-    background: var(--bg-button);
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.15s;
-}
-
-.calendar-sync-btn:hover {
-    background: var(--bg-button-hover);
+    gap: 4px;
 }
 
 .calendar-sync-btn.connected {
@@ -1000,7 +994,7 @@ body {
 }
 
 .calendar-sync-icon {
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .calendar-timeline {
