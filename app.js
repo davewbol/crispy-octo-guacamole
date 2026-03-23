@@ -80,9 +80,19 @@
             if (user) {
                 syncEnabled = true;
                 updateAuthUI(user);
+                // Restore Google Calendar token from sessionStorage
+                var savedToken = sessionStorage.getItem('gCalAccessToken');
+                if (savedToken && !gCalAccessToken) {
+                    gCalAccessToken = savedToken;
+                    updateCalendarSyncUI(true);
+                }
                 syncFromCloud().then(function () {
                     checkAndRunRollover();
                     renderDay();
+                    // Auto-fetch calendar events if token is available
+                    if (gCalAccessToken) {
+                        fetchCalendarEvents();
+                    }
                 });
             } else {
                 syncEnabled = false;
@@ -102,6 +112,7 @@
             // Extract the Google OAuth access token for Calendar API
             if (result.credential && result.credential.accessToken) {
                 gCalAccessToken = result.credential.accessToken;
+                sessionStorage.setItem('gCalAccessToken', gCalAccessToken);
                 updateCalendarSyncUI(true);
                 fetchCalendarEvents();
             }
@@ -113,6 +124,9 @@
 
     function signOut() {
         if (!isFirebaseAvailable()) return;
+        gCalAccessToken = null;
+        sessionStorage.removeItem('gCalAccessToken');
+        updateCalendarSyncUI(false);
         firebase.auth().signOut().catch(function (err) {
             console.error('Sign-out failed:', err);
         });
@@ -1370,6 +1384,7 @@
         firebase.auth().signInWithPopup(provider).then(function (result) {
             if (result.credential && result.credential.accessToken) {
                 gCalAccessToken = result.credential.accessToken;
+                sessionStorage.setItem('gCalAccessToken', gCalAccessToken);
                 updateCalendarSyncUI(true);
                 fetchCalendarEvents();
             }
@@ -1398,8 +1413,9 @@
         })
         .then(function (res) {
             if (res.status === 401) {
-                // Token expired, try refreshing
+                // Token expired, clear and require re-auth
                 gCalAccessToken = null;
+                sessionStorage.removeItem('gCalAccessToken');
                 updateCalendarSyncUI(false);
                 return null;
             }
