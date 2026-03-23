@@ -12,9 +12,7 @@
     let syncDebounceTimer = null;
 
     /* Google Calendar state */
-    const GCAL_API_KEY = firebaseConfig.apiKey;
     const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
-    let gCalTokenClient = null;
     let gCalAccessToken = null;
     let calendarEvents = [];
 
@@ -1354,85 +1352,31 @@
        GOOGLE CALENDAR INTEGRATION
        =========================== */
 
-    function initGoogleCalendar() {
-        // Initialize the GIS token client for calendar access
-        if (typeof google === 'undefined' || !google.accounts) return;
-
-        gCalTokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: firebaseConfig.clientId || extractClientId(),
-            scope: GCAL_SCOPES,
-            callback: function (tokenResponse) {
-                if (tokenResponse.error) {
-                    console.error('Calendar auth error:', tokenResponse.error);
-                    return;
-                }
-                gCalAccessToken = tokenResponse.access_token;
-                updateCalendarSyncUI(true);
-                fetchCalendarEvents();
-            }
-        });
-    }
-
-    function extractClientId() {
-        // Derive OAuth client ID from Firebase config's authDomain
-        // For Firebase projects, the Web client ID is in the format:
-        // {messagingSenderId}-{hash}.apps.googleusercontent.com
-        // But we need the actual OAuth client ID from the Firebase project
-        // Users should set firebaseConfig.clientId; fall back to discovery
-        return firebaseConfig.messagingSenderId + '-' +
-               firebaseConfig.appId.split(':')[3].substring(0, 12) +
-               '.apps.googleusercontent.com';
-    }
-
     function connectGoogleCalendar() {
         if (!currentUser) {
             showNotification('Please sign in with Google first to connect your calendar.');
             return;
         }
 
-        // Try using the Firebase auth credential first
-        var credential = currentUser.getIdToken ? null : null;
-
-        // Use the access token from Firebase Auth if available
-        if (currentUser.stsTokenManager_ && currentUser.stsTokenManager_.accessToken) {
-            gCalAccessToken = currentUser.stsTokenManager_.accessToken;
+        // If we already have a token, just refresh events
+        if (gCalAccessToken) {
             fetchCalendarEvents();
             return;
         }
 
-        // Try getting a fresh token through Firebase
-        var currentProvider = currentUser.providerData && currentUser.providerData[0];
-        if (currentProvider && currentProvider.providerId === 'google.com') {
-            // Re-auth to get calendar scope token
-            var provider = new firebase.auth.GoogleAuthProvider();
-            provider.addScope(GCAL_SCOPES);
-            firebase.auth().currentUser.getIdToken(true).then(function () {
-                // Try using GIS token client as fallback
-                if (gCalTokenClient) {
-                    gCalTokenClient.requestAccessToken({ prompt: '' });
-                } else {
-                    // Re-sign in to get the scoped token
-                    firebase.auth().signInWithPopup(provider).then(function (result) {
-                        if (result.credential) {
-                            gCalAccessToken = result.credential.accessToken;
-                            updateCalendarSyncUI(true);
-                            fetchCalendarEvents();
-                        }
-                    }).catch(function (err) {
-                        console.error('Calendar re-auth failed:', err);
-                        showNotification('Could not connect calendar. Please try signing out and back in.');
-                    });
-                }
-            });
-            return;
-        }
-
-        // Use GIS token client
-        if (gCalTokenClient) {
-            gCalTokenClient.requestAccessToken({ prompt: 'consent' });
-        } else {
-            showNotification('Google Calendar API not available. Please reload the page.');
-        }
+        // Re-sign in with calendar scope to get an OAuth access token
+        var provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope(GCAL_SCOPES);
+        firebase.auth().signInWithPopup(provider).then(function (result) {
+            if (result.credential && result.credential.accessToken) {
+                gCalAccessToken = result.credential.accessToken;
+                updateCalendarSyncUI(true);
+                fetchCalendarEvents();
+            }
+        }).catch(function (err) {
+            console.error('Calendar connect failed:', err);
+            showNotification('Could not connect calendar: ' + err.message);
+        });
     }
 
     function fetchCalendarEvents() {
@@ -1700,9 +1644,6 @@
 
         // Initialize Firebase (async — won't block first render)
         initFirebase();
-
-        // Initialize Google Calendar API
-        initGoogleCalendar();
     }
 
     if (document.readyState === 'loading') {
