@@ -13,6 +13,7 @@
 
     /* Google Calendar state */
     const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+    const GCAL_CONNECTED_KEY = 'fcplanner_gcal_connected';
     let gCalAccessToken = null;
     let calendarEvents = [];
 
@@ -92,6 +93,9 @@
                     // Auto-fetch calendar events if token is available
                     if (gCalAccessToken) {
                         fetchCalendarEvents();
+                    } else if (localStorage.getItem(GCAL_CONNECTED_KEY) === 'true') {
+                        // User previously connected calendar — silently re-acquire token
+                        refreshCalendarToken();
                     }
                 });
             } else {
@@ -113,6 +117,7 @@
             if (result.credential && result.credential.accessToken) {
                 gCalAccessToken = result.credential.accessToken;
                 sessionStorage.setItem('gCalAccessToken', gCalAccessToken);
+                localStorage.setItem(GCAL_CONNECTED_KEY, 'true');
                 updateCalendarSyncUI(true);
                 fetchCalendarEvents();
             }
@@ -126,9 +131,28 @@
         if (!isFirebaseAvailable()) return;
         gCalAccessToken = null;
         sessionStorage.removeItem('gCalAccessToken');
+        localStorage.removeItem(GCAL_CONNECTED_KEY);
         updateCalendarSyncUI(false);
         firebase.auth().signOut().catch(function (err) {
             console.error('Sign-out failed:', err);
+        });
+    }
+
+    function refreshCalendarToken() {
+        if (!currentUser) return;
+        var provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope(GCAL_SCOPES);
+        // Use reauthenticateWithPopup to silently get a fresh OAuth token
+        currentUser.reauthenticateWithPopup(provider).then(function (result) {
+            if (result.credential && result.credential.accessToken) {
+                gCalAccessToken = result.credential.accessToken;
+                sessionStorage.setItem('gCalAccessToken', gCalAccessToken);
+                updateCalendarSyncUI(true);
+                fetchCalendarEvents();
+            }
+        }).catch(function (err) {
+            console.error('Calendar token refresh failed:', err);
+            // Don't clear the connected flag — user can retry manually
         });
     }
 
@@ -1425,6 +1449,7 @@
             if (result.credential && result.credential.accessToken) {
                 gCalAccessToken = result.credential.accessToken;
                 sessionStorage.setItem('gCalAccessToken', gCalAccessToken);
+                localStorage.setItem(GCAL_CONNECTED_KEY, 'true');
                 updateCalendarSyncUI(true);
                 fetchCalendarEvents();
             }
@@ -1453,11 +1478,15 @@
         })
         .then(function (res) {
             if (res.status === 401) {
-                // Token expired, clear and require re-auth
+                // Token expired — try to silently refresh
                 gCalAccessToken = null;
                 sessionStorage.removeItem('gCalAccessToken');
-                updateCalendarSyncUI(false);
-                showNotification('Calendar token expired. Please reconnect your calendar.');
+                if (localStorage.getItem(GCAL_CONNECTED_KEY) === 'true') {
+                    refreshCalendarToken();
+                } else {
+                    updateCalendarSyncUI(false);
+                    showNotification('Calendar token expired. Please reconnect your calendar.');
+                }
                 return null;
             }
             if (!res.ok) {
