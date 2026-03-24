@@ -1741,7 +1741,11 @@
             currentDate = hash;
         }
 
-        checkAndRunRollover();
+        // Only run rollover here for offline users; signed-in users
+        // run it after syncFromCloud to avoid double-rollover duplicates
+        if (!syncEnabled) {
+            checkAndRunRollover();
+        }
         bindEvents();
         renderDay();
         renderCalendarView();
