@@ -459,6 +459,9 @@
         var order = { A: 0, B: 1, C: 2 };
         return tasks.slice().sort(function (a, b) {
             if (order[a.priority] !== order[b.priority]) return order[a.priority] - order[b.priority];
+            var aDone = a.status === 'done' ? 1 : 0;
+            var bDone = b.status === 'done' ? 1 : 0;
+            if (aDone !== bDone) return aDone - bDone;
             return a.number - b.number;
         });
     }
