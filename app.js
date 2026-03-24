@@ -340,7 +340,18 @@
                 taskMap[cloudTasks[j].id] = cloudTasks[j];
             }
         }
-        return Object.keys(taskMap).map(function (id) { return taskMap[id]; });
+        // Deduplicate by content — if two tasks have the same text, keep the cloud version
+        var contentMap = {};
+        var result = [];
+        var tasks = Object.keys(taskMap).map(function (id) { return taskMap[id]; });
+        for (var m = 0; m < tasks.length; m++) {
+            var contentKey = tasks[m].priority + '|' + tasks[m].text.trim().toLowerCase();
+            if (!contentMap[contentKey]) {
+                contentMap[contentKey] = true;
+                result.push(tasks[m]);
+            }
+        }
+        return result;
     }
 
     function saveDataLocalOnly() {
