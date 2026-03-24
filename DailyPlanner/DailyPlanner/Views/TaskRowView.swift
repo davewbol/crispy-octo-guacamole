@@ -24,9 +24,9 @@ struct TaskRowView: View {
             } label: {
                 Text(task.priority)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(theme.priorityTextColor(task.priority))
                     .frame(width: 24, height: 24)
-                    .background(AppTheme.priorityColor(task.priority))
+                    .background(theme.priorityColor(task.priority))
                     .clipShape(Circle())
             }
             .disabled(task.status == "forwarded")
@@ -49,9 +49,9 @@ struct TaskRowView: View {
                 .padding(.horizontal, 4)
                 .padding(.vertical, 2)
                 .background(theme.bgInput)
-                .cornerRadius(4)
+                .cornerRadius(GHRadius.sm)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 4)
+                    RoundedRectangle(cornerRadius: GHRadius.sm)
                         .stroke(theme.borderPrimary, lineWidth: 1)
                 )
             } else {
@@ -76,7 +76,7 @@ struct TaskRowView: View {
                 } label: {
                     Text("→ \(fwd)")
                         .font(.system(size: 11))
-                        .foregroundStyle(AppTheme.statusForwarded)
+                        .foregroundStyle(theme.statusForwarded)
                 }
             }
 
@@ -89,7 +89,7 @@ struct TaskRowView: View {
             } label: {
                 Image(systemName: task.statusIcon)
                     .font(.system(size: 22))
-                    .foregroundStyle(AppTheme.statusColor(task.status))
+                    .foregroundStyle(theme.statusColor(task.status))
             }
             .disabled(task.status == "forwarded")
 
@@ -159,7 +159,7 @@ struct TaskRowView: View {
 
     private var textColor: Color {
         switch task.status {
-        case "completed": return AppTheme.statusCompleted
+        case "completed": return theme.statusCompleted
         case "cancelled": return theme.textMuted
         case "forwarded": return theme.textFaint
         default: return theme.textPrimary

@@ -20,9 +20,9 @@ struct DailyNotesView: View {
                 .scrollContentBackground(.hidden)
                 .background(theme.bgInput)
                 .frame(minHeight: 80, maxHeight: 160)
-                .cornerRadius(6)
+                .cornerRadius(GHRadius.sm)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: GHRadius.sm)
                         .stroke(isFocused ? theme.borderPrimary : theme.borderSecondary, lineWidth: 1)
                 )
                 .focused($isFocused)

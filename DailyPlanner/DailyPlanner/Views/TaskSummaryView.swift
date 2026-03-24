@@ -19,7 +19,7 @@ struct TaskSummaryView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "flame.fill")
                         .font(.system(size: 14))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(theme.flameColor)
                     Text("\(streak)")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(theme.textPrimary)

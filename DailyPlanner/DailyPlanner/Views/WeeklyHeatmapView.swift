@@ -20,11 +20,11 @@ struct WeeklyHeatmapView: View {
                         .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(theme.textFaint)
 
-                    RoundedRectangle(cornerRadius: 4)
+                    RoundedRectangle(cornerRadius: GHRadius.sm)
                         .fill(theme.heatmapColor(for: pct))
                         .frame(width: 24, height: 24)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 4)
+                            RoundedRectangle(cornerRadius: GHRadius.sm)
                                 .stroke(isToday ? theme.textPrimary : (isCurrent ? theme.textMuted : .clear), lineWidth: isToday ? 2 : 1)
                         )
                         .onTapGesture {

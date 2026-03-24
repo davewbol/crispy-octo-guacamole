@@ -6,12 +6,6 @@ struct ConfettiView: View {
     @State private var particles: [ConfettiParticle] = []
     @State private var startTime: Date = Date()
 
-    private let colors: [Color] = [
-        Color(hex: "e74c3c"), Color(hex: "f39c12"), Color(hex: "2ecc71"),
-        Color(hex: "3498db"), Color(hex: "9b59b6"), Color(hex: "1abc9c"),
-        Color(hex: "e67e22"), Color(hex: "f1c40f")
-    ]
-
     var body: some View {
         if isActive {
             TimelineView(.animation) { timeline in
@@ -49,7 +43,7 @@ struct ConfettiView: View {
                         y: UIScreen.main.bounds.height * 0.35,
                         vx: CGFloat.random(in: -200...200),
                         vy: CGFloat.random(in: -500 ... -150),
-                        color: colors.randomElement()!,
+                        color: GHPalette.confetti.randomElement()!,
                         size: CGFloat.random(in: 4...9),
                         rotation: Double.random(in: 0...360),
                         rotSpeed: Double.random(in: -5...5)

@@ -39,10 +39,10 @@ struct DateHeaderView: View {
 
                 Text(badge.text)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(theme.badgeTextColor(badge.type))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
-                    .background(AppTheme.badgeColor(badge.type))
+                    .background(theme.badgeColor(badge.type))
                     .clipShape(Capsule())
             }
 
@@ -69,9 +69,9 @@ struct DateHeaderView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .background(theme.bgButton)
-                    .cornerRadius(6)
+                    .cornerRadius(GHRadius.sm)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: GHRadius.sm)
                             .stroke(theme.borderPrimary, lineWidth: 1)
                     )
             }

@@ -15,9 +15,9 @@ struct AddTaskView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
                 .background(theme.bgInput)
-                .cornerRadius(6)
+                .cornerRadius(GHRadius.sm)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: GHRadius.sm)
                         .stroke(theme.borderPrimary, lineWidth: 1)
                 )
                 .foregroundStyle(theme.textPrimary)
@@ -34,16 +34,16 @@ struct AddTaskView: View {
             } label: {
                 Text(selectedPriority)
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(theme.priorityTextColor(selectedPriority))
                     .frame(width: 36, height: 36)
-                    .background(AppTheme.priorityColor(selectedPriority))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .background(theme.priorityColor(selectedPriority))
+                    .clipShape(RoundedRectangle(cornerRadius: GHRadius.sm))
             }
 
             Button(action: addTask) {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 28))
-                    .foregroundStyle(AppTheme.priorityColor(selectedPriority))
+                    .foregroundStyle(theme.priorityColor(selectedPriority))
             }
             .disabled(taskText.trimmingCharacters(in: .whitespaces).isEmpty)
         }

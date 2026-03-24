@@ -25,7 +25,7 @@ struct SettingsView: View {
                                 Spacer()
                                 if t.rawValue == viewModel.data.settings.theme {
                                     Image(systemName: "checkmark")
-                                        .foregroundStyle(.blue)
+                                        .foregroundStyle(theme.colorAccent)
                                 }
                             }
                             .foregroundStyle(theme.textPrimary)

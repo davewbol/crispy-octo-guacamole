@@ -29,9 +29,9 @@ struct TaskListView: View {
                 }
             }
             .background(theme.bgCard)
-            .cornerRadius(8)
+            .cornerRadius(GHRadius.md)
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: GHRadius.md)
                     .stroke(theme.borderSecondary, lineWidth: 1)
             )
         }
