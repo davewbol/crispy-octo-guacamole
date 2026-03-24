@@ -25,7 +25,7 @@ body {
     margin: 0 auto 12px;
     background: var(--auth-bar-bg);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    overflow: visible;
 }
 
 .auth-bar-inner {
