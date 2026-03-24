@@ -1,0 +1,346 @@
+/* ============================================
+   Golden Hour Design System — Token Definitions
+   ============================================ */
+
+/* === Primitive Tokens (never change per theme) === */
+:root {
+    /* Teal scale */
+    --gh-teal-900: #0E2424;
+    --gh-teal-800: #1A3A3A;
+    --gh-teal-700: #2A5454;
+    --gh-teal-600: #3D5C5C;
+    --gh-teal-500: #4A7C7C;
+    --gh-teal-400: #5C9E9E;
+    --gh-teal-300: #8CB3B3;
+    --gh-teal-200: #B8D4D4;
+    --gh-teal-100: #DFF0F0;
+    --gh-teal-50: #F7FAFA;
+
+    /* Amber scale */
+    --gh-amber-600: #D49A1A;
+    --gh-amber-500: #EAA922;
+    --gh-amber-400: #FFB932;
+    --gh-amber-300: #FFCB66;
+    --gh-amber-200: #FFDD99;
+    --gh-amber-100: #FFF0CC;
+
+    /* Sage scale */
+    --gh-sage-500: #2E7D4F;
+    --gh-sage-400: #3D9A65;
+    --gh-sage-300: #6BB88A;
+    --gh-sage-200: #A8D5B8;
+    --gh-sage-100: #D6EDDE;
+
+    /* Coral scale */
+    --gh-coral-500: #D94E3A;
+    --gh-coral-400: #F06650;
+    --gh-coral-300: #F4887A;
+    --gh-coral-200: #F9B4AB;
+    --gh-coral-100: #FDE0DC;
+
+    /* Neutral scale */
+    --gh-neutral-900: #1A1A1A;
+    --gh-neutral-800: #333333;
+    --gh-neutral-700: #4A4A4A;
+    --gh-neutral-600: #666666;
+    --gh-neutral-500: #808080;
+    --gh-neutral-400: #999999;
+    --gh-neutral-300: #B3B3B3;
+    --gh-neutral-200: #D4D4D4;
+    --gh-neutral-100: #EBEBEB;
+    --gh-neutral-50: #F5F5F5;
+    --gh-white: #FFFFFF;
+
+    /* Typography primitives */
+    --font-family-primary: 'Outfit', sans-serif;
+    --font-weight-regular: 400;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
+    --tracking-display: -0.03em;
+    --tracking-h1: -0.025em;
+    --tracking-h2: -0.02em;
+    --tracking-label: 0.12em;
+    --line-height-body: 1.65;
+
+    /* Border radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(14, 36, 36, 0.06);
+    --shadow-md: 0 4px 12px rgba(14, 36, 36, 0.08);
+    --shadow-lg: 0 12px 32px rgba(14, 36, 36, 0.12);
+    --shadow-amber-glow: 0 8px 24px rgba(255, 185, 50, 0.3);
+
+    /* Semantic colors (shared across all themes) */
+    --color-primary: var(--gh-teal-800);
+    --color-accent: var(--gh-amber-400);
+    --color-accent-hover: var(--gh-amber-600);
+    --color-success: var(--gh-sage-400);
+    --color-error: var(--gh-coral-400);
+    --color-error-hover: var(--gh-coral-500);
+    --color-warning: var(--gh-amber-400);
+    --color-on-primary: var(--gh-white);
+    --color-on-accent: var(--gh-teal-800);
+}
+
+/* === Classic Theme — Golden Hour (default) === */
+:root,
+[data-theme="classic"] {
+    --bg-page: var(--gh-teal-50);
+    --bg-card: var(--gh-white);
+    --bg-card-gradient: linear-gradient(180deg, var(--gh-white) 0%, var(--gh-teal-50) 100%);
+    --text-primary: var(--gh-teal-800);
+    --text-secondary: var(--gh-teal-600);
+    --text-muted: #6B8080;
+    --text-faint: var(--gh-teal-300);
+    --text-placeholder: var(--gh-teal-300);
+    --text-empty: var(--gh-teal-200);
+    --border-primary: var(--gh-teal-200);
+    --border-secondary: var(--gh-teal-100);
+    --border-light: #EAF2F2;
+    --border-accent: var(--gh-amber-400);
+    --border-input: var(--gh-teal-200);
+    --border-input-focus: var(--gh-teal-500);
+    --border-text-focus: var(--gh-teal-300);
+    --border-text-hover: var(--gh-teal-200);
+    --bg-input: var(--gh-white);
+    --bg-input-focus: var(--gh-white);
+    --bg-button: var(--gh-teal-50);
+    --bg-button-hover: var(--gh-teal-100);
+    --bg-hover: #F2F8F8;
+    --bg-notes: #F5FAFA;
+    --text-notes: var(--gh-teal-700);
+    --bg-notification: var(--gh-amber-100);
+    --border-notification: var(--gh-amber-300);
+    --text-notification: var(--gh-amber-600);
+    --bg-dropdown: var(--gh-white);
+    --bg-dropdown-hover: var(--gh-teal-50);
+    --bg-delete-hover: var(--gh-coral-100);
+    --bg-signout-hover: var(--gh-coral-100);
+    --shadow-card: var(--shadow-md), 0 0 0 1px rgba(26, 58, 58, 0.06);
+    --shadow-dropdown: var(--shadow-md);
+    --border-dashed: var(--gh-teal-200);
+    --reorder-color: var(--gh-teal-300);
+    --reorder-hover: var(--gh-teal-600);
+    --status-open-border: var(--gh-teal-300);
+    --status-open-color: var(--gh-teal-300);
+    --delete-color: var(--gh-teal-300);
+    --forward-border: var(--gh-teal-200);
+    --forward-color: var(--gh-teal-300);
+    --task-number-color: var(--gh-teal-300);
+    --notes-label-color: #6B8080;
+    --fwd-cancel-bg: var(--gh-white);
+    --fwd-cancel-color: var(--gh-teal-600);
+
+    /* Component-specific tokens */
+    --priority-a-bg: var(--gh-coral-400);
+    --priority-a-text: var(--gh-white);
+    --priority-b-bg: var(--gh-amber-400);
+    --priority-b-text: var(--gh-teal-800);
+    --priority-c-bg: var(--gh-teal-300);
+    --priority-c-text: var(--gh-white);
+
+    --status-completed-bg: var(--gh-teal-800);
+    --status-cancelled-bg: var(--gh-neutral-300);
+    --status-forwarded-bg: var(--gh-amber-400);
+
+    --badge-today-bg: var(--gh-sage-100);
+    --badge-today-text: var(--gh-sage-500);
+    --badge-past-bg: var(--gh-coral-100);
+    --badge-past-text: var(--gh-coral-500);
+    --badge-future-bg: var(--gh-teal-100);
+    --badge-future-text: var(--gh-teal-700);
+
+    --calendar-event-bg: var(--gh-teal-100);
+    --calendar-event-border: var(--gh-teal-400);
+    --calendar-event-title: var(--gh-teal-800);
+    --calendar-event-time: var(--gh-teal-600);
+    --calendar-today-bg: var(--gh-teal-800);
+    --calendar-now-color: var(--gh-coral-400);
+
+    --auth-bar-bg: var(--gh-teal-800);
+    --auth-bar-text: var(--gh-teal-100);
+    --auth-bar-accent: var(--gh-amber-400);
+
+    --heatmap-empty: var(--gh-teal-100);
+    --heatmap-low: var(--gh-amber-200);
+    --heatmap-mid: var(--gh-amber-400);
+    --heatmap-high: var(--gh-amber-600);
+
+    --color-scheme: light;
+}
+
+/* === Light Theme — Cool Golden Hour === */
+[data-theme="light"] {
+    --bg-page: var(--gh-neutral-50);
+    --bg-card: var(--gh-white);
+    --bg-card-gradient: linear-gradient(180deg, var(--gh-white) 0%, #F8FAFA 100%);
+    --text-primary: var(--gh-teal-800);
+    --text-secondary: var(--gh-teal-600);
+    --text-muted: var(--gh-neutral-600);
+    --text-faint: var(--gh-neutral-400);
+    --text-placeholder: var(--gh-neutral-400);
+    --text-empty: var(--gh-neutral-300);
+    --border-primary: var(--gh-neutral-200);
+    --border-secondary: var(--gh-neutral-100);
+    --border-light: #F0F0F0;
+    --border-accent: var(--gh-teal-400);
+    --border-input: var(--gh-neutral-200);
+    --border-input-focus: var(--gh-teal-500);
+    --border-text-focus: var(--gh-neutral-300);
+    --border-text-hover: var(--gh-neutral-200);
+    --bg-input: var(--gh-white);
+    --bg-input-focus: var(--gh-white);
+    --bg-button: var(--gh-neutral-50);
+    --bg-button-hover: var(--gh-neutral-100);
+    --bg-hover: #FAFAFA;
+    --bg-notes: #FAFBFB;
+    --text-notes: var(--gh-neutral-700);
+    --bg-notification: var(--gh-amber-100);
+    --border-notification: var(--gh-amber-200);
+    --text-notification: var(--gh-amber-600);
+    --bg-dropdown: var(--gh-white);
+    --bg-dropdown-hover: var(--gh-neutral-50);
+    --bg-delete-hover: var(--gh-coral-100);
+    --bg-signout-hover: var(--gh-coral-100);
+    --shadow-card: var(--shadow-sm), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    --shadow-dropdown: var(--shadow-md);
+    --border-dashed: var(--gh-neutral-200);
+    --reorder-color: var(--gh-neutral-300);
+    --reorder-hover: var(--gh-neutral-600);
+    --status-open-border: var(--gh-neutral-300);
+    --status-open-color: var(--gh-neutral-300);
+    --delete-color: var(--gh-neutral-300);
+    --forward-border: var(--gh-neutral-200);
+    --forward-color: var(--gh-neutral-400);
+    --task-number-color: var(--gh-neutral-400);
+    --notes-label-color: var(--gh-neutral-500);
+    --fwd-cancel-bg: var(--gh-white);
+    --fwd-cancel-color: var(--gh-neutral-600);
+
+    --priority-a-bg: var(--gh-coral-400);
+    --priority-a-text: var(--gh-white);
+    --priority-b-bg: var(--gh-amber-400);
+    --priority-b-text: var(--gh-teal-800);
+    --priority-c-bg: var(--gh-neutral-400);
+    --priority-c-text: var(--gh-white);
+
+    --status-completed-bg: var(--gh-teal-800);
+    --status-cancelled-bg: var(--gh-neutral-300);
+    --status-forwarded-bg: var(--gh-amber-400);
+
+    --badge-today-bg: var(--gh-sage-100);
+    --badge-today-text: var(--gh-sage-500);
+    --badge-past-bg: var(--gh-coral-100);
+    --badge-past-text: var(--gh-coral-500);
+    --badge-future-bg: var(--gh-teal-100);
+    --badge-future-text: var(--gh-teal-700);
+
+    --calendar-event-bg: var(--gh-teal-100);
+    --calendar-event-border: var(--gh-teal-400);
+    --calendar-event-title: var(--gh-teal-800);
+    --calendar-event-time: var(--gh-teal-600);
+    --calendar-today-bg: var(--gh-teal-800);
+    --calendar-now-color: var(--gh-coral-400);
+
+    --auth-bar-bg: var(--gh-teal-800);
+    --auth-bar-text: var(--gh-teal-100);
+    --auth-bar-accent: var(--gh-amber-400);
+
+    --heatmap-empty: var(--gh-neutral-100);
+    --heatmap-low: var(--gh-amber-200);
+    --heatmap-mid: var(--gh-amber-400);
+    --heatmap-high: var(--gh-amber-600);
+
+    --color-scheme: light;
+}
+
+/* === Dark Theme — Midnight Golden Hour === */
+[data-theme="dark"] {
+    --bg-page: var(--gh-teal-900);
+    --bg-card: #1A2E2E;
+    --bg-card-gradient: linear-gradient(180deg, #1A2E2E 0%, var(--gh-teal-900) 100%);
+    --text-primary: var(--gh-teal-100);
+    --text-secondary: var(--gh-teal-200);
+    --text-muted: var(--gh-teal-300);
+    --text-faint: var(--gh-teal-400);
+    --text-placeholder: var(--gh-teal-400);
+    --text-empty: var(--gh-teal-500);
+    --border-primary: var(--gh-teal-700);
+    --border-secondary: #1E3838;
+    --border-light: #162C2C;
+    --border-accent: var(--gh-amber-400);
+    --border-input: var(--gh-teal-700);
+    --border-input-focus: var(--gh-teal-400);
+    --border-text-focus: var(--gh-teal-500);
+    --border-text-hover: var(--gh-teal-700);
+    --bg-input: #1E3838;
+    --bg-input-focus: var(--gh-teal-700);
+    --bg-button: #1E3838;
+    --bg-button-hover: var(--gh-teal-700);
+    --bg-hover: #162C2C;
+    --bg-notes: #162C2C;
+    --text-notes: var(--gh-teal-200);
+    --bg-notification: #2E2800;
+    --border-notification: #4A4000;
+    --text-notification: var(--gh-amber-300);
+    --bg-dropdown: #1E3838;
+    --bg-dropdown-hover: var(--gh-teal-700);
+    --bg-delete-hover: #3A2020;
+    --bg-signout-hover: #3A2020;
+    --shadow-card: 0 2px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --border-dashed: var(--gh-teal-700);
+    --reorder-color: var(--gh-teal-500);
+    --reorder-hover: var(--gh-teal-200);
+    --status-open-border: var(--gh-teal-500);
+    --status-open-color: var(--gh-teal-500);
+    --delete-color: var(--gh-teal-500);
+    --forward-border: var(--gh-teal-700);
+    --forward-color: var(--gh-teal-400);
+    --task-number-color: var(--gh-teal-400);
+    --notes-label-color: var(--gh-teal-400);
+    --fwd-cancel-bg: #1E3838;
+    --fwd-cancel-color: var(--gh-teal-300);
+
+    --priority-a-bg: var(--gh-coral-400);
+    --priority-a-text: var(--gh-white);
+    --priority-b-bg: var(--gh-amber-400);
+    --priority-b-text: var(--gh-teal-900);
+    --priority-c-bg: var(--gh-teal-500);
+    --priority-c-text: var(--gh-white);
+
+    --status-completed-bg: var(--gh-sage-400);
+    --status-cancelled-bg: var(--gh-neutral-500);
+    --status-forwarded-bg: var(--gh-amber-400);
+
+    --badge-today-bg: #1A3A2A;
+    --badge-today-text: var(--gh-sage-300);
+    --badge-past-bg: #3A2020;
+    --badge-past-text: var(--gh-coral-300);
+    --badge-future-bg: #1A3030;
+    --badge-future-text: var(--gh-teal-300);
+
+    --calendar-event-bg: #1A3030;
+    --calendar-event-border: var(--gh-teal-400);
+    --calendar-event-title: var(--gh-teal-100);
+    --calendar-event-time: var(--gh-teal-300);
+    --calendar-today-bg: var(--gh-amber-400);
+    --calendar-now-color: var(--gh-coral-400);
+
+    --auth-bar-bg: var(--gh-teal-900);
+    --auth-bar-text: var(--gh-teal-200);
+    --auth-bar-accent: var(--gh-amber-400);
+
+    --heatmap-empty: #1E3838;
+    --heatmap-low: #3A3010;
+    --heatmap-mid: var(--gh-amber-600);
+    --heatmap-high: var(--gh-amber-400);
+
+    --color-scheme: dark;
+}

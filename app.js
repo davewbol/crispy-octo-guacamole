@@ -555,7 +555,7 @@
         ctx.scale(dpr, dpr);
         canvas.classList.add('active');
 
-        var colors = ['#e74c3c', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#1abc9c', '#e67e22', '#f1c40f'];
+        var colors = (typeof GoldenHourTokens !== 'undefined') ? GoldenHourTokens.confetti : ['#FFB932', '#1A3A3A', '#3D9A65', '#F06650', '#FFCB66', '#5C9E9E', '#D49A1A', '#8CB3B3'];
         var particles = [];
         for (var i = 0; i < 60; i++) {
             particles.push({
