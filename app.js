@@ -51,7 +51,7 @@
 
     function getDayData(dateStr) {
         if (!data.days[dateStr]) {
-            data.days[dateStr] = { tasks: [], notes: '' };
+            data.days[dateStr] = { tasks: [], notes: '', deletedTaskIds: [], deletedCalendarEventIds: [] };
         }
         return data.days[dateStr];
     }
@@ -235,11 +235,26 @@
             } else if (local && !cloud) {
                 // Local only — keep it (will sync up on next save)
             } else if (local && cloud) {
-                // Both exist — merge by task ID
-                var mergedTasks = mergeTasks(local.tasks || [], cloud.tasks || []);
+                // Combine deleted IDs from both local and cloud
+                var localDeleted = local.deletedTaskIds || [];
+                var cloudDeleted = cloud.deletedTaskIds || [];
+                var allDeletedMap = {};
+                localDeleted.concat(cloudDeleted).forEach(function (id) { allDeletedMap[id] = true; });
+                var mergedDeletedIds = Object.keys(allDeletedMap);
+
+                var localDeletedCal = local.deletedCalendarEventIds || [];
+                var cloudDeletedCal = cloud.deletedCalendarEventIds || [];
+                var allDeletedCalMap = {};
+                localDeletedCal.concat(cloudDeletedCal).forEach(function (id) { allDeletedCalMap[id] = true; });
+                var mergedDeletedCalIds = Object.keys(allDeletedCalMap);
+
+                // Both exist — merge by task ID, excluding deleted tasks
+                var mergedTasks = mergeTasks(local.tasks || [], cloud.tasks || [], mergedDeletedIds);
                 data.days[dateStr] = {
                     tasks: mergedTasks,
-                    notes: (cloud.notes || local.notes || '')
+                    notes: (cloud.notes || local.notes || ''),
+                    deletedTaskIds: mergedDeletedIds,
+                    deletedCalendarEventIds: mergedDeletedCalIds
                 };
             }
         });
@@ -258,7 +273,7 @@
         var tasks = [];
         if (Array.isArray(dayData.tasks)) {
             tasks = dayData.tasks.map(function (t) {
-                return {
+                var task = {
                     id: t.id || generateId(),
                     priority: t.priority || 'C',
                     number: t.number || 1,
@@ -267,22 +282,39 @@
                     forwardedTo: t.forwardedTo || null,
                     createdAt: t.createdAt || new Date().toISOString()
                 };
+                if (t.calendarEventId) {
+                    task.calendarEventId = t.calendarEventId;
+                }
+                return task;
             });
         }
         return {
             tasks: tasks,
-            notes: dayData.notes || ''
+            notes: dayData.notes || '',
+            deletedTaskIds: dayData.deletedTaskIds || [],
+            deletedCalendarEventIds: dayData.deletedCalendarEventIds || []
         };
     }
 
-    function mergeTasks(localTasks, cloudTasks) {
+    function mergeTasks(localTasks, cloudTasks, deletedTaskIds) {
+        // Build a set of deleted task IDs for O(1) lookup
+        var deletedSet = {};
+        if (deletedTaskIds) {
+            for (var k = 0; k < deletedTaskIds.length; k++) {
+                deletedSet[deletedTaskIds[k]] = true;
+            }
+        }
         // Build a map by task ID; cloud version wins for duplicates
         var taskMap = {};
         for (var i = 0; i < localTasks.length; i++) {
-            taskMap[localTasks[i].id] = localTasks[i];
+            if (!deletedSet[localTasks[i].id]) {
+                taskMap[localTasks[i].id] = localTasks[i];
+            }
         }
         for (var j = 0; j < cloudTasks.length; j++) {
-            taskMap[cloudTasks[j].id] = cloudTasks[j];
+            if (!deletedSet[cloudTasks[j].id]) {
+                taskMap[cloudTasks[j].id] = cloudTasks[j];
+            }
         }
         return Object.keys(taskMap).map(function (id) { return taskMap[id]; });
     }
@@ -683,6 +715,12 @@
         if (idx !== -1) {
             var wasAllComplete = isAllCompleted(day);
             var removed = day.tasks.splice(idx, 1)[0];
+            if (!day.deletedTaskIds) day.deletedTaskIds = [];
+            day.deletedTaskIds.push(removed.id);
+            if (removed.calendarEventId) {
+                if (!day.deletedCalendarEventIds) day.deletedCalendarEventIds = [];
+                day.deletedCalendarEventIds.push(removed.calendarEventId);
+            }
             renumberPriority(day.tasks, removed.priority);
             saveData();
             renderDay();
@@ -1474,6 +1512,12 @@
                 if (t.text.indexOf(evt.title) !== -1) return true;
                 return false;
             });
+
+            // Skip if user previously deleted a task for this calendar event
+            var deletedCalIds = day.deletedCalendarEventIds || [];
+            if (!exists && deletedCalIds.indexOf(evt.id) !== -1) {
+                exists = true;
+            }
 
             if (!exists) {
                 var startTime = new Date(evt.start);
