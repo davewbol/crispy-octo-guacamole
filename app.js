@@ -1469,7 +1469,10 @@
             // Check if a task already exists for this calendar event
             var calTag = '[cal:' + evt.id + ']';
             var exists = day.tasks.some(function (t) {
-                return t.text.indexOf(calTag) !== -1 || t.calendarEventId === evt.id;
+                if (t.text.indexOf(calTag) !== -1 || t.calendarEventId === evt.id) return true;
+                // Also match by event title to catch tasks that lost their calendarEventId
+                if (t.text.indexOf(evt.title) !== -1) return true;
+                return false;
             });
 
             if (!exists) {
