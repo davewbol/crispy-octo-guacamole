@@ -81,8 +81,8 @@
             if (user) {
                 syncEnabled = true;
                 updateAuthUI(user);
-                // Restore Google Calendar token from sessionStorage
-                var savedToken = sessionStorage.getItem('gCalAccessToken');
+                // Restore Google Calendar token from localStorage
+                var savedToken = localStorage.getItem('gCalAccessToken');
                 if (savedToken && !gCalAccessToken) {
                     gCalAccessToken = savedToken;
                     updateCalendarSyncUI(true);
@@ -116,7 +116,7 @@
             // Extract the Google OAuth access token for Calendar API
             if (result.credential && result.credential.accessToken) {
                 gCalAccessToken = result.credential.accessToken;
-                sessionStorage.setItem('gCalAccessToken', gCalAccessToken);
+                localStorage.setItem('gCalAccessToken', gCalAccessToken);
                 localStorage.setItem(GCAL_CONNECTED_KEY, 'true');
                 updateCalendarSyncUI(true);
                 fetchCalendarEvents();
@@ -130,7 +130,7 @@
     function signOut() {
         if (!isFirebaseAvailable()) return;
         gCalAccessToken = null;
-        sessionStorage.removeItem('gCalAccessToken');
+        localStorage.removeItem('gCalAccessToken');
         localStorage.removeItem(GCAL_CONNECTED_KEY);
         updateCalendarSyncUI(false);
         firebase.auth().signOut().catch(function (err) {
@@ -146,7 +146,7 @@
         currentUser.reauthenticateWithPopup(provider).then(function (result) {
             if (result.credential && result.credential.accessToken) {
                 gCalAccessToken = result.credential.accessToken;
-                sessionStorage.setItem('gCalAccessToken', gCalAccessToken);
+                localStorage.setItem('gCalAccessToken', gCalAccessToken);
                 updateCalendarSyncUI(true);
                 fetchCalendarEvents();
             }
@@ -1462,7 +1462,7 @@
         firebase.auth().signInWithPopup(provider).then(function (result) {
             if (result.credential && result.credential.accessToken) {
                 gCalAccessToken = result.credential.accessToken;
-                sessionStorage.setItem('gCalAccessToken', gCalAccessToken);
+                localStorage.setItem('gCalAccessToken', gCalAccessToken);
                 localStorage.setItem(GCAL_CONNECTED_KEY, 'true');
                 updateCalendarSyncUI(true);
                 fetchCalendarEvents();
@@ -1494,7 +1494,7 @@
             if (res.status === 401) {
                 // Token expired — try to silently refresh
                 gCalAccessToken = null;
-                sessionStorage.removeItem('gCalAccessToken');
+                localStorage.removeItem('gCalAccessToken');
                 if (localStorage.getItem(GCAL_CONNECTED_KEY) === 'true') {
                     refreshCalendarToken();
                 } else {
