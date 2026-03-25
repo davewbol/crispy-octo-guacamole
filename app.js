@@ -586,7 +586,10 @@
 
     function isAllCompleted(day) {
         var actionable = day.tasks.filter(function (t) {
-            return t.status !== 'cancelled' && t.status !== 'forwarded';
+            // Exclude cancelled, forwarded, and calendar-event tasks
+            if (t.status === 'cancelled' || t.status === 'forwarded') return false;
+            if (t.calendarEventId) return false;
+            return true;
         });
         if (actionable.length === 0) return false;
         return actionable.every(function (t) { return t.status === 'completed'; });
@@ -1012,8 +1015,12 @@
             badge.classList.add('future');
         }
 
-        var total = day.tasks.length;
-        var completed = day.tasks.filter(function (t) { return t.status === 'completed'; }).length;
+        // Exclude calendar events and forwarded/cancelled tasks from progress
+        var actionableTasks = day.tasks.filter(function (t) {
+            return !t.calendarEventId && t.status !== 'cancelled' && t.status !== 'forwarded';
+        });
+        var total = actionableTasks.length;
+        var completed = actionableTasks.filter(function (t) { return t.status === 'completed'; }).length;
         var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
         // Update hidden backward-compat element
