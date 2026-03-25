@@ -1027,16 +1027,26 @@ html, body {
     /* Content area */
     .content { padding: 12px 10px; }
 
-    /* Progress summary stacks */
+    /* Progress summary: compact single row on mobile */
     .progress-summary {
-        flex-direction: column;
-        gap: 14px;
-        padding: 16px;
-        text-align: center;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 12px;
+        padding: 12px 14px;
+        text-align: left;
+        align-items: center;
     }
-    .ps-stats { justify-content: center; }
-    .ps-headline { font-size: 17px; }
-    .progress-bar-wrap { max-width: 100% !important; margin: 8px auto 0; }
+    .progress-ring-wrap { width: 36px; height: 36px; order: -1; }
+    .progress-ring-wrap svg { width: 36px; height: 36px; }
+    .ring-label { font-size: 10px; }
+    .ps-greeting { display: none; }
+    .ps-headline { font-size: 14px; }
+    .ps-sub { display: none; }
+    .ps-text { flex: 1; min-width: 0; }
+    .progress-bar-wrap { max-width: 100% !important; margin: 6px 0 0; }
+    .ps-stats { gap: 14px; }
+    .ps-stat-val { font-size: 18px; }
+    .ps-stat-lbl { font-size: 10px; }
 
     /* Task items: single row, priority left, checkbox right */
     .task-item {
