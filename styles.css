@@ -967,27 +967,114 @@ html, body {
     .right-panel { display: none; }
     .sidebar { width: 56px; padding: 12px 8px; }
     .sb-brand, .sb-section, .sb-user-info, .sb-settings { display: none; }
-    .sb-item { justify-content: center; padding: 8px; }
-    .sb-item .icon { margin: 0; }
+    .sb-item { justify-content: center; padding: 8px; font-size: 0; }
+    .sb-item .icon { font-size: 18px; margin: 0; }
     .sb-item .badge { display: none; }
+    .sb-logo { justify-content: center; }
+    .sb-logo .sb-brand { display: none; }
     .sb-user { justify-content: center; }
+    .sb-avatar { width: 28px; height: 28px; font-size: 12px; }
     .calendar-panel { margin: 12px; }
     .calendar-timeline { height: 500px; }
+    .progress-summary { padding: 16px 18px; }
+    .ps-headline { font-size: 18px; }
 }
 
 @media (max-width: 600px) {
-    .sidebar { display: none; }
-    .topbar { padding: 8px 10px; gap: 6px; }
+    /* Stack vertically — no sidebar, full-width main */
+    .app-shell { flex-direction: column; height: auto; min-height: 100vh; }
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-shrink: 0;
+        padding: 8px 12px;
+        gap: 4px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        align-items: center;
+    }
+    .sb-logo { margin-bottom: 0; margin-right: 8px; flex-shrink: 0; }
+    .sb-logo .sb-brand { display: none; }
+    .sb-section { display: none; }
+    .sb-item { padding: 6px 10px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+    .sb-item .icon { font-size: 14px; width: auto; }
+    .sb-user { display: none; }
+    .main { overflow-y: auto; flex: 1; }
+
+    /* Topbar compact */
+    .topbar { padding: 8px 10px; gap: 6px; flex-wrap: wrap; }
     .topbar-day { font-size: 14px; }
+    .topbar-label { font-size: 10px; padding: 1px 6px; }
+    .progress-ring-wrap { width: 36px; height: 36px; }
+    .progress-ring-wrap svg { width: 36px; height: 36px; }
+    .ring-label { font-size: 10px; }
+    .btn-icon { width: 40px; height: 40px; min-width: 40px; font-size: 16px; }
+    .btn-ghost { font-size: 12px; padding: 4px 8px; }
+    .calendar-sync-btn { font-size: 11px; }
+    .calendar-sync-btn span { font-size: 11px; }
+
+    /* Content area */
     .content { padding: 12px 10px; }
-    .task-item { padding: 8px 10px; gap: 6px; }
+
+    /* Progress summary stacks */
+    .progress-summary {
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+        text-align: center;
+    }
+    .ps-stats { justify-content: center; }
+    .ps-headline { font-size: 17px; }
+    .progress-bar-wrap { max-width: 100% !important; margin: 8px auto 0; }
+
+    /* Task items stack actions below */
+    .task-item {
+        flex-wrap: wrap;
+        padding: 10px 10px;
+        gap: 8px;
+    }
+    .task-body { flex-basis: calc(100% - 44px); min-width: 0; }
+    .task-badges { order: 4; }
+    .task-actions-compact { order: 5; margin-left: auto; }
     .task-text { font-size: 16px; }
-    .notes-textarea { font-size: 16px; }
-    .form-input { font-size: 16px; }
-    .add-task-row-form { flex-wrap: wrap; padding: 10px; gap: 6px; }
+
+    /* Task group cards */
+    .task-group { border-radius: var(--radius-sm); }
+    .tg-header { padding: 6px 12px; font-size: 10px; }
+
+    /* Add task form wraps */
+    .add-task-row-form {
+        flex-wrap: wrap;
+        padding: 10px;
+        gap: 6px;
+        border-radius: var(--radius-sm);
+    }
+    .form-input {
+        flex-basis: 100%;
+        order: -1;
+        font-size: 16px;
+    }
+    .priority-select { flex: 1; min-width: 0; }
+
+    /* Notes */
+    .notes-section { padding: 12px 10px; }
+    .notes-textarea { font-size: 16px; min-height: 120px; }
+
+    /* Calendar view full-width */
+    .calendar-panel { margin: 8px; border-radius: var(--radius-sm); }
+    .calendar-timeline { height: 400px; }
+
+    /* Forward picker */
     .forward-picker { flex-wrap: wrap; gap: 6px; padding: 6px 8px; }
+    .forwarded-info { font-size: 10px; }
+
+    /* Notification */
     .notification { font-size: 13px; padding: 8px 10px; }
-    .calendar-panel { margin: 8px; }
-    .progress-summary { flex-direction: column; gap: 12px; }
-    .btn-icon { width: 44px; height: 44px; min-width: 44px; }
+
+    /* Theme dropdown position fix */
+    .theme-dropdown { left: auto; right: 0; transform: none; }
+    .theme-btn { padding: 12px 14px; font-size: 15px; }
+
+    /* Toast at bottom center on mobile */
+    .toast-wrap { left: 10px; right: 10px; bottom: 10px; }
 }
