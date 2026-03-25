@@ -1444,9 +1444,11 @@
             var textEl = document.getElementById('new-task-text');
             var text = textEl.value.trim();
             if (!text) return;
-            addTask(priorityEl.value, text);
-            this.reset();
+            var priority = priorityEl.value;
+            textEl.value = '';
+            priorityEl.value = 'A';
             textEl.focus();
+            addTask(priority, text);
         });
 
         function autoResizeTextarea(el) {
