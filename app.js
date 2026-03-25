@@ -1768,7 +1768,9 @@
             timeline.appendChild(slot);
         }
 
-        // Place events on the timeline
+        // Place events on the timeline — with overlap detection
+        // First, compute positions for all events
+        var eventPositions = [];
         for (var i = 0; i < calendarEvents.length; i++) {
             var evt = calendarEvents[i];
             if (evt.isAllDay) continue;
@@ -1778,34 +1780,112 @@
 
             var startMinutes = evtStart.getHours() * 60 + evtStart.getMinutes();
             var endMinutes = evtEnd.getHours() * 60 + evtEnd.getMinutes();
-            if (endMinutes <= startMinutes) endMinutes = startMinutes + 30; // minimum 30min display
+            if (endMinutes <= startMinutes) endMinutes = startMinutes + 30;
 
-            var slotHeight = 60; // pixels per hour
+            var slotHeight = 60;
             var topPx = (startMinutes / 60) * slotHeight;
             var heightPx = ((endMinutes - startMinutes) / 60) * slotHeight;
             if (heightPx < 24) heightPx = 24;
 
+            eventPositions.push({
+                evt: evt,
+                startMinutes: startMinutes,
+                endMinutes: endMinutes,
+                topPx: topPx,
+                heightPx: heightPx,
+                evtStart: evtStart
+            });
+        }
+
+        // Detect overlapping groups and assign columns
+        eventPositions.sort(function (a, b) { return a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes; });
+        var groups = [];
+        for (var i = 0; i < eventPositions.length; i++) {
+            var ep = eventPositions[i];
+            var placed = false;
+            for (var g = 0; g < groups.length; g++) {
+                var group = groups[g];
+                var overlapsGroup = false;
+                for (var m = 0; m < group.length; m++) {
+                    if (ep.startMinutes < group[m].endMinutes && ep.endMinutes > group[m].startMinutes) {
+                        overlapsGroup = true;
+                        break;
+                    }
+                }
+                if (overlapsGroup) {
+                    group.push(ep);
+                    placed = true;
+                    break;
+                }
+            }
+            if (!placed) {
+                groups.push([ep]);
+            }
+        }
+
+        // Assign column index within each group
+        for (var g = 0; g < groups.length; g++) {
+            var group = groups[g];
+            var columns = [];
+            for (var m = 0; m < group.length; m++) {
+                var ep = group[m];
+                var col = 0;
+                while (true) {
+                    var conflict = false;
+                    for (var c = 0; c < columns.length; c++) {
+                        if (columns[c].col === col && ep.startMinutes < columns[c].endMinutes) {
+                            conflict = true;
+                            break;
+                        }
+                    }
+                    if (!conflict) break;
+                    col++;
+                }
+                ep.col = col;
+                ep.totalCols = 1; // will update after
+                columns.push({ col: col, endMinutes: ep.endMinutes });
+            }
+            var maxCol = 0;
+            for (var m = 0; m < group.length; m++) {
+                if (group[m].col > maxCol) maxCol = group[m].col;
+            }
+            for (var m = 0; m < group.length; m++) {
+                group[m].totalCols = maxCol + 1;
+            }
+        }
+
+        // Render events with column offsets
+        for (var i = 0; i < eventPositions.length; i++) {
+            var ep = eventPositions[i];
+
             var evtEl = document.createElement('div');
             evtEl.className = 'calendar-event';
-            evtEl.style.top = topPx + 'px';
-            evtEl.style.height = heightPx + 'px';
+            evtEl.style.top = ep.topPx + 'px';
+            evtEl.style.height = ep.heightPx + 'px';
+
+            if (ep.totalCols > 1) {
+                var widthPct = 100 / ep.totalCols;
+                var leftPct = ep.col * widthPct;
+                evtEl.style.left = 'calc(' + leftPct + '% + 4px)';
+                evtEl.style.width = 'calc(' + widthPct + '% - 8px)';
+                evtEl.style.right = 'auto';
+            }
 
             var evtTitle = document.createElement('div');
             evtTitle.className = 'calendar-event-title';
-            evtTitle.textContent = evt.title;
+            evtTitle.textContent = ep.evt.title;
 
             var evtTime = document.createElement('div');
             evtTime.className = 'calendar-event-time';
-            var startTimeStr = evtStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            var startTimeStr = ep.evtStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
             evtTime.textContent = startTimeStr;
-            if (evt.location) {
-                evtTime.textContent += ', ' + evt.location;
+            if (ep.evt.location) {
+                evtTime.textContent += ', ' + ep.evt.location;
             }
 
             evtEl.appendChild(evtTitle);
             evtEl.appendChild(evtTime);
 
-            // Append to the events container in timeline
             var eventsContainer = timeline.querySelector('.calendar-events-container');
             if (!eventsContainer) {
                 eventsContainer = document.createElement('div');
