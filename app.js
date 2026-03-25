@@ -1445,7 +1445,7 @@
             var text = textEl.value.trim();
             if (!text) return;
             addTask(priorityEl.value, text);
-            textEl.value = '';
+            this.reset();
             textEl.focus();
         });
 
