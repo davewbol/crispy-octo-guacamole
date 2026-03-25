@@ -1481,6 +1481,15 @@
         document.getElementById('sign-in-btn').addEventListener('click', signIn);
         document.getElementById('sign-out-btn').addEventListener('click', signOut);
 
+        // Clicking the sync status item in sidebar triggers sign-in (if offline) or manual sync
+        document.getElementById('nav-sync').addEventListener('click', function () {
+            if (syncEnabled && currentUser) {
+                syncToCloud();
+            } else {
+                signIn();
+            }
+        });
+
         // Theme toggle
         var themeToggle = document.getElementById('theme-toggle');
         var themeDropdown = document.getElementById('theme-dropdown');
