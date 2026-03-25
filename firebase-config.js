@@ -13,7 +13,7 @@
 
 const firebaseConfig = {
   apiKey: "AIzaSyAVR2y3mNdJ8zSNxf_WPmKGmYQuoVuyYVc",
-  authDomain: "app.mydayplanner.app",
+  authDomain: "daily-planner-17bef.firebaseapp.com",
   projectId: "daily-planner-17bef",
   storageBucket: "daily-planner-17bef.firebasestorage.app",
   messagingSenderId: "484037431581",

@@ -77,28 +77,12 @@
 
         db = firebase.firestore();
 
-        // LOCAL persistence is the default for Firebase web apps —
-        // sessions survive page reloads and browser restarts via IndexedDB.
-        var authSettled = false;
-        var fallbackTimer = null;
-
-        // If user was previously signed in, give Firebase a few seconds to
-        // restore the session before showing the signed-out UI.
-        var wasPreviouslySignedIn = localStorage.getItem('fcplanner_was_signed_in') === 'true';
-        if (wasPreviouslySignedIn) {
-            fallbackTimer = setTimeout(function () {
-                if (!authSettled) {
-                    authSettled = true;
-                    syncEnabled = false;
-                    localStorage.removeItem('fcplanner_was_signed_in');
-                    updateAuthUI(null);
-                }
-            }, 3000);
-        }
+        // Check for redirect result (from signInWithRedirect)
+        firebase.auth().getRedirectResult().then(handleSignInResult).catch(function (err) {
+            console.error('Redirect sign-in error:', err);
+        });
 
         firebase.auth().onAuthStateChanged(function (user) {
-            if (fallbackTimer) clearTimeout(fallbackTimer);
-            authSettled = true;
             currentUser = user;
             if (user) {
                 syncEnabled = true;
@@ -151,14 +135,9 @@
         }
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope(GCAL_SCOPES);
-        firebase.auth().signInWithPopup(provider).then(handleSignInResult).catch(function (err) {
-            console.error('Sign-in failed:', err);
-            if (err.code === 'auth/popup-blocked') {
-                showNotification('Please allow popups for this site to sign in.');
-            } else if (err.code !== 'auth/popup-closed-by-user') {
-                showNotification('Sign-in failed: ' + err.message);
-            }
-        });
+        // Use redirect instead of popup — works reliably on mobile and
+        // avoids cross-origin storage issues that cause session loss.
+        firebase.auth().signInWithRedirect(provider);
     }
 
     function signOut() {
@@ -1643,14 +1622,7 @@
         // Re-sign in with calendar scope to get an OAuth access token
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope(GCAL_SCOPES);
-        firebase.auth().signInWithPopup(provider).then(handleSignInResult).catch(function (err) {
-            console.error('Calendar connect failed:', err);
-            if (err.code === 'auth/popup-blocked') {
-                showNotification('Please allow popups for this site to connect your calendar.');
-            } else if (err.code !== 'auth/popup-closed-by-user') {
-                showNotification('Could not connect calendar: ' + err.message);
-            }
-        });
+        firebase.auth().signInWithRedirect(provider);
     }
 
     function fetchCalendarEvents() {
