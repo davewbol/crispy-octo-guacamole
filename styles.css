@@ -1024,8 +1024,8 @@ html, body {
     }
     .calendar-sync-btn span { font-size: 12px; }
 
-    /* Content area */
-    .content { padding: 12px 10px; }
+    /* Content area — extra bottom padding to clear mobile browser toolbar */
+    .content { padding: 12px 10px 100px; }
 
     /* Progress summary: compact single row on mobile */
     .progress-summary {
