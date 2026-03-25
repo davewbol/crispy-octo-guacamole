@@ -195,6 +195,8 @@ body {
 .task-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 .task-badges { display: flex; align-items: center; gap: 4px; flex-shrink: 0; padding-top: 4px; }
 .task-actions-compact { display: flex; align-items: center; gap: 4px; flex-shrink: 0; padding-top: 2px; }
+.task-actions-compact svg, .task-checkbox svg { display: block; }
+.forward-btn svg, .delete-btn svg { pointer-events: none; }
 
 /* === Add Task Form === */
 .add-task-row-form {
@@ -1036,16 +1038,17 @@ html, body {
     .ps-headline { font-size: 17px; }
     .progress-bar-wrap { max-width: 100% !important; margin: 8px auto 0; }
 
-    /* Task items stack actions below */
+    /* Task items: single row, compact actions */
     .task-item {
-        flex-wrap: wrap;
-        padding: 10px 10px;
-        gap: 8px;
+        padding: 10px 8px;
+        gap: 6px;
     }
-    .task-body { flex-basis: calc(100% - 44px); min-width: 0; }
-    .task-badges { order: 4; }
-    .task-actions-compact { order: 5; margin-left: auto; }
+    .task-badges { display: none; }
+    .task-actions-compact { gap: 2px; }
+    .reorder-btns { display: none; }
     .task-text { font-size: 16px; }
+    .task-checkbox { width: 32px; height: 32px; font-size: 16px; }
+    .forward-btn, .delete-btn { width: 32px; height: 32px; }
 
     /* Task group cards */
     .task-group { border-radius: var(--radius-sm); }

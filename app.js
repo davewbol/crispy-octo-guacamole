@@ -1047,8 +1047,13 @@
         var checkbox = document.createElement('button');
         checkbox.className = 'task-checkbox status-' + task.status;
         checkbox.title = 'Status: ' + task.status + ' (click to change)';
-        var statusIcons = { open: '\u25CB', completed: '\u2713', cancelled: '\u2715', forwarded: '\u2192' };
-        checkbox.textContent = statusIcons[task.status] || '\u25CB';
+        var statusSvgs = {
+            open: '',
+            completed: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',
+            cancelled: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>',
+            forwarded: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M20 12H4"/></svg>'
+        };
+        checkbox.innerHTML = statusSvgs[task.status] || '';
         checkbox.addEventListener('click', function () { cycleTaskStatus(task.id); });
 
         // Task body (text + meta)
@@ -1121,14 +1126,14 @@
         var fwdBtn = document.createElement('button');
         fwdBtn.className = 'forward-btn' + (task.status !== 'open' ? ' invisible' : '');
         fwdBtn.title = 'Forward to another day';
-        fwdBtn.textContent = '\u21AA';
+        fwdBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M20 12H4"/></svg>';
         fwdBtn.addEventListener('click', function () { showForwardPicker(task.id, item); });
         actions.appendChild(fwdBtn);
 
         var delBtn = document.createElement('button');
         delBtn.className = 'delete-btn';
         delBtn.title = 'Delete task';
-        delBtn.textContent = '\uD83D\uDDD1';
+        delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>';
         delBtn.addEventListener('click', function () {
             if (confirm('Delete this task?')) deleteTask(task.id);
         });
