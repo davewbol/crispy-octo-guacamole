@@ -1101,3 +1101,12 @@ html, body {
     /* Toast at bottom center on mobile */
     .toast-wrap { left: 10px; right: 10px; bottom: 10px; }
 }
+
+/* Landscape on mobile: tighten vertical spacing */
+@media (max-height: 500px) and (orientation: landscape) {
+    .task-item { padding: 5px 8px; min-height: 36px; }
+    .task-badges { padding-top: 2px; }
+    .task-actions-compact { padding-top: 0; }
+    .tg-header { padding: 4px 12px; }
+    .progress-summary { padding: 8px 12px; }
+}
