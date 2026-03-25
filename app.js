@@ -1839,10 +1839,10 @@
             var endMinutes = evtEnd.getHours() * 60 + evtEnd.getMinutes();
             if (endMinutes <= startMinutes) endMinutes = startMinutes + 30;
 
-            var slotHeight = 60;
+            var slotHeight = 80; // matches .calendar-hour-slot height
             var topPx = (startMinutes / 60) * slotHeight;
             var heightPx = ((endMinutes - startMinutes) / 60) * slotHeight;
-            if (heightPx < 24) heightPx = 24;
+            if (heightPx < 32) heightPx = 32;
 
             eventPositions.push({
                 evt: evt,
@@ -1864,7 +1864,8 @@
                 var group = groups[g];
                 var overlapsGroup = false;
                 for (var m = 0; m < group.length; m++) {
-                    if (ep.startMinutes < group[m].endMinutes && ep.endMinutes > group[m].startMinutes) {
+                    // Use <= to also group back-to-back events (e.g. 10:00-10:30 + 10:30-11:00)
+                    if (ep.startMinutes <= group[m].endMinutes && ep.endMinutes >= group[m].startMinutes) {
                         overlapsGroup = true;
                         break;
                     }
@@ -1956,7 +1957,7 @@
         if (currentDate === getTodayStr()) {
             var now = new Date();
             var nowMinutes = now.getHours() * 60 + now.getMinutes();
-            var nowTop = (nowMinutes / 60) * 60; // 60px per hour
+            var nowTop = (nowMinutes / 60) * 80; // 80px per hour
 
             var timeIndicator = document.createElement('div');
             timeIndicator.className = 'calendar-time-indicator';

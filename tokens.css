@@ -326,10 +326,10 @@
     --badge-future-bg: #1A3030;
     --badge-future-text: var(--gh-teal-300);
 
-    --calendar-event-bg: #1A3030;
-    --calendar-event-border: var(--gh-teal-400);
-    --calendar-event-title: var(--gh-teal-100);
-    --calendar-event-time: var(--gh-teal-300);
+    --calendar-event-bg: #243F3F;
+    --calendar-event-border: var(--gh-amber-400);
+    --calendar-event-title: var(--gh-white);
+    --calendar-event-time: var(--gh-teal-200);
     --calendar-today-bg: var(--gh-amber-400);
     --calendar-now-color: var(--gh-coral-400);
 
