@@ -673,6 +673,22 @@
         var streak = 0;
         var looked = 0;
 
+        // If today has tasks but they're not all done yet, don't count today
+        // as breaking the streak — start counting from yesterday instead.
+        var todayData = data.days[today];
+        if (todayData && todayData.tasks && todayData.tasks.length > 0) {
+            if (isDayCompleted(today)) {
+                streak++;
+                checkDate = addDays(today, -1);
+            } else {
+                // Today is in progress — check streak from yesterday
+                checkDate = addDays(today, -1);
+            }
+        } else {
+            // No tasks today — check streak from yesterday
+            checkDate = addDays(today, -1);
+        }
+
         while (looked < 400) {
             var dayData = data.days[checkDate];
             if (dayData && dayData.tasks && dayData.tasks.length > 0) {
@@ -681,10 +697,33 @@
                 } else {
                     break;
                 }
+            } else {
+                // No tasks on this day — skip it (weekends, days off, etc.)
+                // but only skip up to 2 consecutive empty days to prevent
+                // infinitely looking back
+                var emptyRun = 0;
+                while (emptyRun < 2 && looked < 400) {
+                    checkDate = addDays(checkDate, -1);
+                    looked++;
+                    var nextData = data.days[checkDate];
+                    if (nextData && nextData.tasks && nextData.tasks.length > 0) {
+                        break;
+                    }
+                    emptyRun++;
+                }
+                if (emptyRun >= 2) break;
+                continue;
             }
             checkDate = addDays(checkDate, -1);
             looked++;
         }
+
+        // Persist the best streak we've seen
+        var bestStreak = parseInt(localStorage.getItem('fcplanner_best_streak') || '0', 10);
+        if (streak > bestStreak) {
+            localStorage.setItem('fcplanner_best_streak', String(streak));
+        }
+
         return streak;
     }
 
@@ -703,7 +742,16 @@
         var numEl = document.getElementById('streak-num');
         var subEl = document.getElementById('streak-sub');
         if (numEl) numEl.textContent = streak;
-        if (subEl) subEl.textContent = streak > 0 ? streak + ' day' + (streak !== 1 ? 's' : '') + ' in a row!' : 'Complete all tasks to start a streak';
+        if (subEl) {
+            var bestStreak = parseInt(localStorage.getItem('fcplanner_best_streak') || '0', 10);
+            if (streak > 0 && bestStreak > streak) {
+                subEl.textContent = streak + ' day' + (streak !== 1 ? 's' : '') + ' in a row! Best: ' + bestStreak;
+            } else if (streak > 0) {
+                subEl.textContent = streak + ' day' + (streak !== 1 ? 's' : '') + ' in a row!';
+            } else {
+                subEl.textContent = 'Complete all tasks to start a streak';
+            }
+        }
     }
 
     function getWeekDates(dateStr) {
