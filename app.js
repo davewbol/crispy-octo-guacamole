@@ -367,6 +367,8 @@
         var signOutBtn = document.getElementById('sign-out-btn');
         var authLabel = document.getElementById('auth-label');
         var calSyncBtn = document.getElementById('calendar-sync-btn');
+        var sbUserName = document.getElementById('sb-user-name');
+        var sbAvatar = document.getElementById('sb-avatar');
 
         if (user) {
             signInBtn.classList.add('hidden');
@@ -375,11 +377,15 @@
             var firstName = (user.displayName || '').split(' ')[0];
             var email = user.email || '';
             authLabel.textContent = email && firstName ? email + ' (' + firstName + ')' : email || user.displayName || 'Signed in';
+            if (sbUserName) sbUserName.textContent = user.displayName || email || 'Signed in';
+            if (sbAvatar) sbAvatar.textContent = (firstName || email || '?').charAt(0).toUpperCase();
         } else {
             signInBtn.classList.remove('hidden');
             signOutBtn.classList.add('hidden');
             if (calSyncBtn) calSyncBtn.classList.add('hidden');
             authLabel.textContent = 'Offline mode';
+            if (sbUserName) sbUserName.textContent = 'Not signed in';
+            if (sbAvatar) sbAvatar.textContent = '?';
             setSyncStatus('offline');
         }
     }
@@ -388,22 +394,33 @@
         var indicator = document.getElementById('sync-indicator');
         indicator.classList.remove('sync-offline', 'sync-syncing', 'sync-synced', 'sync-error');
 
+        var sbIcon = document.getElementById('sb-sync-icon');
+        var sbLabel = document.getElementById('sb-sync-label');
+
         switch (status) {
             case 'syncing':
                 indicator.classList.add('sync-syncing');
                 indicator.title = 'Syncing...';
+                if (sbLabel) sbLabel.textContent = 'Syncing...';
+                if (sbIcon) sbIcon.style.color = 'var(--gh-amber-400)';
                 break;
             case 'synced':
                 indicator.classList.add('sync-synced');
                 indicator.title = 'Synced to cloud';
+                if (sbLabel) sbLabel.textContent = 'Synced';
+                if (sbIcon) sbIcon.style.color = 'var(--gh-sage-400)';
                 break;
             case 'error':
                 indicator.classList.add('sync-error');
                 indicator.title = 'Sync error — changes saved locally';
+                if (sbLabel) sbLabel.textContent = 'Sync error';
+                if (sbIcon) sbIcon.style.color = 'var(--gh-coral-400)';
                 break;
             default:
                 indicator.classList.add('sync-offline');
                 indicator.title = 'Not signed in — data stored locally only';
+                if (sbLabel) sbLabel.textContent = 'Offline';
+                if (sbIcon) sbIcon.style.color = 'var(--gh-teal-400)';
         }
     }
 
@@ -523,7 +540,7 @@
 
     function animateStatusChange(taskId, newStatus) {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        var row = document.querySelector('.task-row[data-id="' + taskId + '"]');
+        var row = document.querySelector('.task-item[data-id="' + taskId + '"]');
         if (!row) return;
 
         function addAnim(el, cls) {
@@ -537,7 +554,7 @@
         }
 
         if (newStatus === 'completed') {
-            var btn = row.querySelector('.status-btn');
+            var btn = row.querySelector('.task-checkbox');
             if (btn) addAnim(btn, 'anim-complete-pop');
             addAnim(row, 'anim-row-complete');
         } else if (newStatus === 'cancelled') {
@@ -640,14 +657,21 @@
     }
 
     function renderStreak() {
+        // Update hidden backward-compat element
         var el = document.getElementById('streak-display');
-        if (!el) return;
         var streak = calculateStreak();
-        if (streak > 0) {
-            el.innerHTML = '<span>\uD83D\uDD25</span> <span class="streak-count">' + streak + '</span> day' + (streak !== 1 ? 's' : '') + ' streak';
-        } else {
-            el.textContent = '';
+        if (el) {
+            if (streak > 0) {
+                el.innerHTML = '<span>\uD83D\uDD25</span> <span class="streak-count">' + streak + '</span> day' + (streak !== 1 ? 's' : '') + ' streak';
+            } else {
+                el.textContent = '';
+            }
         }
+        // Update right-panel streak card
+        var numEl = document.getElementById('streak-num');
+        var subEl = document.getElementById('streak-sub');
+        if (numEl) numEl.textContent = streak;
+        if (subEl) subEl.textContent = streak > 0 ? streak + ' day' + (streak !== 1 ? 's' : '') + ' in a row!' : 'Complete all tasks to start a streak';
     }
 
     function getWeekDates(dateStr) {
@@ -920,6 +944,9 @@
 
         var total = day.tasks.length;
         var completed = day.tasks.filter(function (t) { return t.status === 'completed'; }).length;
+        var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        // Update hidden backward-compat element
         var summaryEl = document.getElementById('task-summary');
         if (total > 0) {
             summaryEl.textContent = completed + ' of ' + total + ' task' + (total !== 1 ? 's' : '') + ' completed';
@@ -927,18 +954,43 @@
             summaryEl.textContent = '';
         }
 
-        var listEl = document.getElementById('task-list');
-        listEl.innerHTML = '';
+        // Update progress summary card
+        updateProgressSummary(total, completed, pct);
+        updateProgressRing(pct);
+        updateSidebarBadge(total - completed);
+
+        // Group tasks by priority and render
+        var container = document.getElementById('task-groups');
+        container.innerHTML = '';
 
         if (sorted.length === 0) {
             var empty = document.createElement('div');
             empty.className = 'empty-state';
             empty.textContent = 'No tasks for this day. Add one below.';
-            listEl.appendChild(empty);
+            container.appendChild(empty);
         } else {
+            var groups = { A: [], B: [], C: [] };
             for (var i = 0; i < sorted.length; i++) {
-                listEl.appendChild(createTaskRow(sorted[i]));
+                var pri = sorted[i].priority || 'C';
+                if (!groups[pri]) groups[pri] = [];
+                groups[pri].push(sorted[i]);
             }
+            var groupLabels = { A: 'Vital', B: 'Important', C: 'Nice to do' };
+            ['A', 'B', 'C'].forEach(function (pri) {
+                if (groups[pri].length === 0) return;
+                var groupEl = document.createElement('div');
+                groupEl.className = 'task-group';
+
+                var header = document.createElement('div');
+                header.className = 'tg-header';
+                header.innerHTML = '<span>' + pri + ' \u2014 ' + groupLabels[pri] + '</span><span class="tg-count">' + groups[pri].length + '</span>';
+                groupEl.appendChild(header);
+
+                for (var j = 0; j < groups[pri].length; j++) {
+                    groupEl.appendChild(createTaskItem(groups[pri][j]));
+                }
+                container.appendChild(groupEl);
+            });
         }
 
         var notesEl = document.getElementById('daily-notes');
@@ -948,34 +1000,60 @@
 
         renderStreak();
         renderHeatmap();
+        renderMiniCalendar();
     }
 
-    function createTaskRow(task) {
-        var row = document.createElement('div');
-        row.className = 'task-row status-' + task.status;
-        row.dataset.id = task.id;
+    function updateProgressSummary(total, completed, pct) {
+        var greetingEl = document.getElementById('ps-greeting');
+        var headlineEl = document.getElementById('ps-headline');
+        var subEl = document.getElementById('ps-sub');
+        var barEl = document.getElementById('ps-bar');
+        var doneEl = document.getElementById('ps-done-count');
+        var streakEl = document.getElementById('ps-streak');
 
-        // Priority badge
-        var priCol = document.createElement('div');
-        priCol.className = 'col-priority';
-        var priBadge = document.createElement('span');
-        priBadge.className = 'priority-badge priority-' + task.priority;
-        priBadge.textContent = task.priority;
-        priBadge.title = 'Click to change priority';
-        priBadge.addEventListener('click', function (e) { showPriorityDropdown(e, task.id, task.priority); });
-        priCol.appendChild(priBadge);
+        if (greetingEl) {
+            var h = new Date().getHours();
+            greetingEl.textContent = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+        }
+        if (headlineEl) headlineEl.textContent = completed + ' of ' + total + ' tasks done';
+        if (subEl) subEl.textContent = pct === 100 && total > 0 ? 'All done! Great work!' : total === 0 ? 'Add some tasks to get started' : 'Keep going!';
+        if (barEl) barEl.style.width = pct + '%';
+        if (doneEl) doneEl.textContent = completed;
+        if (streakEl) streakEl.textContent = calculateStreak();
+    }
 
-        // Number
-        var numCol = document.createElement('div');
-        numCol.className = 'col-number';
-        var numSpan = document.createElement('span');
-        numSpan.className = 'task-number';
-        numSpan.textContent = task.number;
-        numCol.appendChild(numSpan);
+    function updateProgressRing(pct) {
+        var circle = document.getElementById('ring-fill');
+        var label = document.getElementById('ring-label');
+        if (!circle || !label) return;
+        var r = 17;
+        var circumference = 2 * Math.PI * r;
+        circle.style.strokeDasharray = circumference;
+        circle.style.strokeDashoffset = circumference - (pct / 100) * circumference;
+        label.textContent = pct + '%';
+    }
 
-        // Task text (textarea for wrapping)
-        var taskCol = document.createElement('div');
-        taskCol.className = 'col-task';
+    function updateSidebarBadge(remaining) {
+        var el = document.getElementById('sb-task-count');
+        if (el) el.textContent = remaining > 0 ? remaining : '';
+    }
+
+    function createTaskItem(task) {
+        var item = document.createElement('div');
+        item.className = 'task-item status-' + task.status + ' priority-' + task.priority;
+        item.dataset.id = task.id;
+
+        // Checkbox (replaces status-btn)
+        var checkbox = document.createElement('button');
+        checkbox.className = 'task-checkbox status-' + task.status;
+        checkbox.title = 'Status: ' + task.status + ' (click to change)';
+        var statusIcons = { open: '\u25CB', completed: '\u2713', cancelled: '\u2715', forwarded: '\u2192' };
+        checkbox.textContent = statusIcons[task.status] || '\u25CB';
+        checkbox.addEventListener('click', function () { cycleTaskStatus(task.id); });
+
+        // Task body (text + meta)
+        var body = document.createElement('div');
+        body.className = 'task-body';
         var textArea = document.createElement('textarea');
         textArea.className = 'task-text';
         textArea.value = task.text;
@@ -983,10 +1061,7 @@
         textArea.readOnly = task.status === 'forwarded';
         textArea.addEventListener('blur', function () { updateTaskText(task.id, textArea.value); });
         textArea.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                textArea.blur();
-            }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textArea.blur(); }
         });
         function autoResize() {
             textArea.style.height = 'auto';
@@ -994,7 +1069,7 @@
         }
         textArea.addEventListener('input', autoResize);
         requestAnimationFrame(autoResize);
-        taskCol.appendChild(textArea);
+        body.appendChild(textArea);
 
         if (task.status === 'forwarded' && task.forwardedTo) {
             var fwdInfo = document.createElement('span');
@@ -1002,16 +1077,23 @@
             fwdInfo.textContent = '\u2192 ' + task.forwardedTo;
             fwdInfo.title = 'Click to change forwarded date';
             fwdInfo.addEventListener('click', function () { showEditForwardPicker(task.id, fwdInfo); });
-            taskCol.appendChild(fwdInfo);
+            body.appendChild(fwdInfo);
         }
 
-        // Actions
-        var actCol = document.createElement('div');
-        actCol.className = 'col-actions';
-        var actionsDiv = document.createElement('div');
-        actionsDiv.className = 'task-actions';
+        // Badges
+        var badges = document.createElement('div');
+        badges.className = 'task-badges';
+        var priBadge = document.createElement('span');
+        priBadge.className = 'priority-badge priority-' + task.priority;
+        priBadge.textContent = task.priority;
+        priBadge.title = 'Click to change priority';
+        priBadge.addEventListener('click', function (e) { showPriorityDropdown(e, task.id, task.priority); });
+        badges.appendChild(priBadge);
 
-        // Reorder buttons
+        // Actions
+        var actions = document.createElement('div');
+        actions.className = 'task-actions-compact';
+
         var day = getDayData(currentDate);
         var group = day.tasks
             .filter(function (t) { return t.priority === task.priority; })
@@ -1020,7 +1102,6 @@
 
         var reorderDiv = document.createElement('div');
         reorderDiv.className = 'reorder-btns';
-
         var upBtn = document.createElement('button');
         upBtn.className = 'reorder-btn';
         upBtn.textContent = '\u25B2';
@@ -1028,7 +1109,6 @@
         upBtn.disabled = groupIdx <= 0;
         upBtn.addEventListener('click', function () { moveTask(task.id, -1); });
         reorderDiv.appendChild(upBtn);
-
         var downBtn = document.createElement('button');
         downBtn.className = 'reorder-btn';
         downBtn.textContent = '\u25BC';
@@ -1036,32 +1116,15 @@
         downBtn.disabled = groupIdx >= group.length - 1;
         downBtn.addEventListener('click', function () { moveTask(task.id, 1); });
         reorderDiv.appendChild(downBtn);
+        actions.appendChild(reorderDiv);
 
-        actionsDiv.appendChild(reorderDiv);
-
-        // Status button
-        var statusBtn = document.createElement('button');
-        statusBtn.className = 'status-btn status-' + task.status;
-        statusBtn.title = 'Status: ' + task.status + ' (click to change)';
-        var statusIcons = {
-            open: '\u25CB',
-            completed: '\u2713',
-            cancelled: '\u2715',
-            forwarded: '\u2192'
-        };
-        statusBtn.textContent = statusIcons[task.status] || '\u25CB';
-        statusBtn.addEventListener('click', function () { cycleTaskStatus(task.id); });
-        actionsDiv.appendChild(statusBtn);
-
-        // Forward button
         var fwdBtn = document.createElement('button');
         fwdBtn.className = 'forward-btn' + (task.status !== 'open' ? ' invisible' : '');
         fwdBtn.title = 'Forward to another day';
         fwdBtn.textContent = '\u21AA';
-        fwdBtn.addEventListener('click', function () { showForwardPicker(task.id, row); });
-        actionsDiv.appendChild(fwdBtn);
+        fwdBtn.addEventListener('click', function () { showForwardPicker(task.id, item); });
+        actions.appendChild(fwdBtn);
 
-        // Delete button
         var delBtn = document.createElement('button');
         delBtn.className = 'delete-btn';
         delBtn.title = 'Delete task';
@@ -1069,16 +1132,14 @@
         delBtn.addEventListener('click', function () {
             if (confirm('Delete this task?')) deleteTask(task.id);
         });
-        actionsDiv.appendChild(delBtn);
+        actions.appendChild(delBtn);
 
-        actCol.appendChild(actionsDiv);
+        item.appendChild(checkbox);
+        item.appendChild(body);
+        item.appendChild(badges);
+        item.appendChild(actions);
 
-        row.appendChild(priCol);
-        row.appendChild(numCol);
-        row.appendChild(taskCol);
-        row.appendChild(actCol);
-
-        return row;
+        return item;
     }
 
     /* ===========================
@@ -1170,7 +1231,7 @@
         picker.appendChild(confirmBtn);
         picker.appendChild(cancelBtn);
 
-        var row = fwdInfoElement.closest('.task-row');
+        var row = fwdInfoElement.closest('.task-item');
         row.after(picker);
     }
 
@@ -1394,6 +1455,15 @@
                 }
             }
         });
+
+        // Sidebar navigation
+        var navItems = document.querySelectorAll('.sb-item[data-view]');
+        for (var n = 0; n < navItems.length; n++) {
+            navItems[n].addEventListener('click', function () {
+                var viewId = this.getAttribute('data-view');
+                switchView(viewId);
+            });
+        }
 
         // Auth buttons
         document.getElementById('sign-in-btn').addEventListener('click', signIn);
@@ -1733,6 +1803,66 @@
             // Scroll to 8 AM for non-today dates
             timeline.scrollTop = 8 * 60;
         }
+    }
+
+    function renderMiniCalendar() {
+        var grid = document.getElementById('mini-cal-grid');
+        var titleEl = document.getElementById('rp-month-title');
+        if (!grid) return;
+
+        var dateObj = parseDate(currentDate);
+        var year = dateObj.getFullYear();
+        var month = dateObj.getMonth();
+        var today = getTodayStr();
+
+        if (titleEl) titleEl.textContent = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        grid.innerHTML = '';
+        var dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        for (var d = 0; d < 7; d++) {
+            var hdr = document.createElement('div');
+            hdr.className = 'mc-header';
+            hdr.textContent = dayHeaders[d];
+            grid.appendChild(hdr);
+        }
+
+        var firstDay = new Date(year, month, 1).getDay();
+        var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Fill leading blanks
+        for (var b = 0; b < firstDay; b++) {
+            var blank = document.createElement('div');
+            blank.className = 'mc-day other-month';
+            grid.appendChild(blank);
+        }
+
+        for (var i = 1; i <= daysInMonth; i++) {
+            var cell = document.createElement('div');
+            cell.className = 'mc-day';
+            cell.textContent = i;
+            var cellDate = toDateStr(new Date(year, month, i));
+            if (cellDate === today) cell.classList.add('is-today');
+            if (cellDate === currentDate) cell.classList.add('is-current');
+            (function (ds) {
+                cell.addEventListener('click', function () { navigateToDate(ds); });
+            })(cellDate);
+            grid.appendChild(cell);
+        }
+    }
+
+    function switchView(viewId) {
+        document.querySelectorAll('.sb-item[data-view]').forEach(function (el) {
+            el.classList.remove('active');
+        });
+        var navEl = document.querySelector('.sb-item[data-view="' + viewId + '"]');
+        if (navEl) navEl.classList.add('active');
+
+        document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+        var viewMap = { today: 'view-today', calendar: 'view-calendar', notes: 'view-notes' };
+        var targetView = document.getElementById(viewMap[viewId]);
+        if (targetView) targetView.classList.add('active');
+
+        if (viewId === 'calendar') renderCalendarView();
     }
 
     function init() {
