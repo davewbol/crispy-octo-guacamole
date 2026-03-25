@@ -995,6 +995,7 @@
 
         var notesEl = document.getElementById('daily-notes');
         notesEl.value = day.notes || '';
+        autoResizeTextarea(notesEl);
 
         document.getElementById('date-picker').value = currentDate;
 
@@ -1427,7 +1428,13 @@
             textEl.focus();
         });
 
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
         var notesEl = document.getElementById('daily-notes');
+        notesEl.addEventListener('input', function () { autoResizeTextarea(notesEl); });
         var saveNotes = debounce(function () {
             var day = getDayData(currentDate);
             day.notes = notesEl.value;
