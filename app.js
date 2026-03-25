@@ -76,6 +76,16 @@
 
         db = firebase.firestore();
 
+        // Handle redirect result (mobile sign-in returns here after redirect)
+        firebase.auth().getRedirectResult().then(function (result) {
+            if (result && result.user) {
+                handleSignInResult(result);
+            }
+        }).catch(function (err) {
+            console.error('Redirect sign-in failed:', err);
+            showNotification('Sign-in failed: ' + err.message);
+        });
+
         firebase.auth().onAuthStateChanged(function (user) {
             currentUser = user;
             if (user) {
@@ -105,6 +115,20 @@
         });
     }
 
+    function isMobile() {
+        return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    }
+
+    function handleSignInResult(result) {
+        if (result.credential && result.credential.accessToken) {
+            gCalAccessToken = result.credential.accessToken;
+            localStorage.setItem('gCalAccessToken', gCalAccessToken);
+            localStorage.setItem(GCAL_CONNECTED_KEY, 'true');
+            updateCalendarSyncUI(true);
+            fetchCalendarEvents();
+        }
+    }
+
     function signIn() {
         if (!isFirebaseAvailable()) {
             showNotification('Firebase not configured. See firebase-config.js for setup instructions.');
@@ -112,19 +136,14 @@
         }
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope(GCAL_SCOPES);
-        firebase.auth().signInWithPopup(provider).then(function (result) {
-            // Extract the Google OAuth access token for Calendar API
-            if (result.credential && result.credential.accessToken) {
-                gCalAccessToken = result.credential.accessToken;
-                localStorage.setItem('gCalAccessToken', gCalAccessToken);
-                localStorage.setItem(GCAL_CONNECTED_KEY, 'true');
-                updateCalendarSyncUI(true);
-                fetchCalendarEvents();
-            }
-        }).catch(function (err) {
-            console.error('Sign-in failed:', err);
-            showNotification('Sign-in failed: ' + err.message);
-        });
+        if (isMobile()) {
+            firebase.auth().signInWithRedirect(provider);
+        } else {
+            firebase.auth().signInWithPopup(provider).then(handleSignInResult).catch(function (err) {
+                console.error('Sign-in failed:', err);
+                showNotification('Sign-in failed: ' + err.message);
+            });
+        }
     }
 
     function signOut() {
@@ -142,18 +161,20 @@
         if (!currentUser) return;
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope(GCAL_SCOPES);
-        // Use reauthenticateWithPopup to silently get a fresh OAuth token
-        currentUser.reauthenticateWithPopup(provider).then(function (result) {
-            if (result.credential && result.credential.accessToken) {
-                gCalAccessToken = result.credential.accessToken;
-                localStorage.setItem('gCalAccessToken', gCalAccessToken);
-                updateCalendarSyncUI(true);
-                fetchCalendarEvents();
-            }
-        }).catch(function (err) {
-            console.error('Calendar token refresh failed:', err);
-            // Don't clear the connected flag — user can retry manually
-        });
+        if (isMobile()) {
+            currentUser.reauthenticateWithRedirect(provider);
+        } else {
+            currentUser.reauthenticateWithPopup(provider).then(function (result) {
+                if (result.credential && result.credential.accessToken) {
+                    gCalAccessToken = result.credential.accessToken;
+                    localStorage.setItem('gCalAccessToken', gCalAccessToken);
+                    updateCalendarSyncUI(true);
+                    fetchCalendarEvents();
+                }
+            }).catch(function (err) {
+                console.error('Calendar token refresh failed:', err);
+            });
+        }
     }
 
     function scheduleSyncToCloud() {
@@ -1550,18 +1571,16 @@
         // Re-sign in with calendar scope to get an OAuth access token
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope(GCAL_SCOPES);
-        firebase.auth().signInWithPopup(provider).then(function (result) {
-            if (result.credential && result.credential.accessToken) {
-                gCalAccessToken = result.credential.accessToken;
-                localStorage.setItem('gCalAccessToken', gCalAccessToken);
-                localStorage.setItem(GCAL_CONNECTED_KEY, 'true');
-                updateCalendarSyncUI(true);
-                fetchCalendarEvents();
-            }
-        }).catch(function (err) {
-            console.error('Calendar connect failed:', err);
-            showNotification('Could not connect calendar: ' + err.message);
-        });
+        if (isMobile()) {
+            firebase.auth().signInWithRedirect(provider);
+        } else {
+            firebase.auth().signInWithPopup(provider).then(function (result) {
+                handleSignInResult(result);
+            }).catch(function (err) {
+                console.error('Calendar connect failed:', err);
+                showNotification('Could not connect calendar: ' + err.message);
+            });
+        }
     }
 
     function fetchCalendarEvents() {
