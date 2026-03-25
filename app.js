@@ -109,6 +109,11 @@
     }
 
     function handleSignInResult(result) {
+        if (result && result.user) {
+            currentUser = result.user;
+            syncEnabled = true;
+            updateAuthUI(result.user);
+        }
         if (result && result.credential && result.credential.accessToken) {
             gCalAccessToken = result.credential.accessToken;
             localStorage.setItem('gCalAccessToken', gCalAccessToken);
@@ -373,6 +378,7 @@
         var signOutBtn = document.getElementById('sign-out-btn');
         var authLabel = document.getElementById('auth-label');
         var calSyncBtn = document.getElementById('calendar-sync-btn');
+        var calViewSyncBtn = document.getElementById('cal-view-sync-btn');
         var sbUserName = document.getElementById('sb-user-name');
         var sbAvatar = document.getElementById('sb-avatar');
 
@@ -380,6 +386,7 @@
             signInBtn.classList.add('hidden');
             signOutBtn.classList.remove('hidden');
             if (calSyncBtn) calSyncBtn.classList.remove('hidden');
+            if (calViewSyncBtn) calViewSyncBtn.classList.remove('hidden');
             var firstName = (user.displayName || '').split(' ')[0];
             var email = user.email || '';
             authLabel.textContent = email && firstName ? email + ' (' + firstName + ')' : email || user.displayName || 'Signed in';
@@ -390,6 +397,7 @@
             signInBtn.classList.remove('hidden');
             signOutBtn.classList.add('hidden');
             if (calSyncBtn) calSyncBtn.classList.add('hidden');
+            if (calViewSyncBtn) calViewSyncBtn.classList.add('hidden');
             authLabel.textContent = 'Offline mode';
             if (sbUserName) sbUserName.textContent = 'Not signed in';
             if (sbAvatar) sbAvatar.textContent = '?';
@@ -403,6 +411,12 @@
 
         var sbIcon = document.getElementById('sb-sync-icon');
         var sbLabel = document.getElementById('sb-sync-label');
+        var navSync = document.getElementById('nav-sync');
+
+        // Toggle offline highlight class on the nav item (used by mobile CSS)
+        if (navSync) {
+            navSync.classList.toggle('sync-offline', status !== 'syncing' && status !== 'synced' && status !== 'error');
+        }
 
         switch (status) {
             case 'syncing':
@@ -426,7 +440,7 @@
             default:
                 indicator.classList.add('sync-offline');
                 indicator.title = 'Not signed in — data stored locally only';
-                if (sbLabel) sbLabel.textContent = 'Offline';
+                if (sbLabel) sbLabel.textContent = 'Sign in';
                 if (sbIcon) sbIcon.style.color = 'var(--gh-teal-400)';
         }
     }
@@ -1685,19 +1699,23 @@
     }
 
     function updateCalendarSyncUI(connected) {
-        var btn = document.getElementById('calendar-sync-btn');
-        var label = document.getElementById('calendar-sync-label');
-        if (!btn || !label) return;
+        var buttons = [
+            { btn: document.getElementById('calendar-sync-btn'), label: document.getElementById('calendar-sync-label') },
+            { btn: document.getElementById('cal-view-sync-btn'), label: document.getElementById('cal-view-sync-label') }
+        ];
 
-        if (connected) {
-            label.textContent = 'Synced';
-            btn.classList.add('connected');
-            btn.title = 'Google Calendar connected — click to refresh';
-        } else {
-            label.textContent = 'Connect Calendar';
-            btn.classList.remove('connected');
-            btn.title = 'Connect Google Calendar';
-        }
+        buttons.forEach(function (pair) {
+            if (!pair.btn || !pair.label) return;
+            if (connected) {
+                pair.label.textContent = 'Synced';
+                pair.btn.classList.add('connected');
+                pair.btn.title = 'Google Calendar connected — click to refresh';
+            } else {
+                pair.label.textContent = 'Connect Calendar';
+                pair.btn.classList.remove('connected');
+                pair.btn.title = 'Connect Google Calendar';
+            }
+        });
     }
 
     /* ===========================
@@ -1907,17 +1925,22 @@
         renderDay();
         renderCalendarView();
 
-        // Calendar sync button
-        var calSyncBtn = document.getElementById('calendar-sync-btn');
-        if (calSyncBtn) {
-            calSyncBtn.addEventListener('click', function () {
-                if (gCalAccessToken) {
-                    fetchCalendarEvents();
-                } else {
-                    connectGoogleCalendar();
-                }
-            });
-        }
+        // Calendar sync buttons (topbar + calendar view)
+        var calSyncBtns = [
+            document.getElementById('calendar-sync-btn'),
+            document.getElementById('cal-view-sync-btn')
+        ];
+        calSyncBtns.forEach(function (btn) {
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    if (gCalAccessToken) {
+                        fetchCalendarEvents();
+                    } else {
+                        connectGoogleCalendar();
+                    }
+                });
+            }
+        });
 
         // Initialize Firebase (async — won't block first render)
         initFirebase();

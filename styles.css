@@ -24,6 +24,8 @@ body {
     display: flex;
     height: 100vh;
     overflow: hidden;
+    max-width: 1280px;
+    margin: 0 auto;
 }
 
 /* === Sidebar === */
@@ -743,6 +745,17 @@ body {
     font-size: 13px;
 }
 
+/* Calendar sync button inside the Calendar view header */
+.calendar-view-sync-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.calendar-view-sync-btn.connected {
+    border-color: var(--color-success);
+    color: var(--color-success);
+}
+
 .calendar-timeline {
     position: relative;
     overflow-y: auto;
@@ -1002,6 +1015,9 @@ html, body {
     .sb-item { padding: 6px 10px; font-size: 12px; white-space: nowrap; flex-shrink: 0; justify-content: flex-start; }
     .sb-item .icon { font-size: 14px; width: auto; }
     .sb-user { display: none; }
+    /* Make the sync/sign-in nav item stand out on mobile */
+    #nav-sync { margin-left: auto; }
+    #nav-sync.sync-offline { background: var(--gh-amber-400); color: var(--gh-teal-800); font-weight: var(--font-weight-bold); border-radius: var(--radius-sm); }
     .main { overflow-y: auto; flex: 1; }
 
     /* Topbar: two rows — nav on top, calendar sync below */
@@ -1015,14 +1031,7 @@ html, body {
     .ring-label { font-size: 11px; }
     .btn-icon { width: 40px; height: 40px; min-width: 40px; font-size: 16px; }
     .btn-ghost { font-size: 12px; padding: 4px 8px; }
-    .calendar-sync-btn {
-        flex-basis: 100%;
-        justify-content: center;
-        font-size: 12px;
-        border-top: 1px solid var(--border-secondary);
-        padding-top: 6px;
-        margin-top: 2px;
-    }
+    .calendar-sync-btn { display: none !important; }
     .calendar-sync-btn span { font-size: 12px; }
 
     /* Content area — extra bottom padding to clear mobile browser toolbar */
