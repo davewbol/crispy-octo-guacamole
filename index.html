@@ -71,13 +71,6 @@
                 <button id="next-day" class="btn btn-icon" title="Next day">&#8594;</button>
                 <button id="go-today" class="btn btn-ghost" title="Go to today">Today</button>
                 <div class="topbar-spacer"></div>
-                <div class="progress-ring-wrap" id="progress-ring" title="Completion">
-                    <svg width="42" height="42" viewBox="0 0 42 42">
-                        <circle class="ring-bg" cx="21" cy="21" r="17"/>
-                        <circle class="ring-fill" id="ring-fill" cx="21" cy="21" r="17"/>
-                    </svg>
-                    <div class="ring-label" id="ring-label">0%</div>
-                </div>
                 <button id="calendar-sync-btn" class="btn btn-ghost calendar-sync-btn hidden" title="Sync Google Calendar">
                     <span class="calendar-sync-icon">&#128197;</span>
                     <span id="calendar-sync-label">Connect Calendar</span>
@@ -104,6 +97,13 @@
                                     <div class="pb-fill" id="ps-bar" style="width:0%;"></div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="progress-ring-wrap" id="progress-ring" title="Completion">
+                            <svg width="48" height="48" viewBox="0 0 42 42">
+                                <circle class="ring-bg" cx="21" cy="21" r="17"/>
+                                <circle class="ring-fill" id="ring-fill" cx="21" cy="21" r="17"/>
+                            </svg>
+                            <div class="ring-label" id="ring-label">0%</div>
                         </div>
                         <div class="ps-stats">
                             <div class="ps-stat">
