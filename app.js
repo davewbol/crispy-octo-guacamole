@@ -82,8 +82,11 @@
                 handleSignInResult(result);
             }
         }).catch(function (err) {
-            console.error('Redirect sign-in failed:', err);
-            showNotification('Sign-in failed: ' + err.message);
+            // Suppress popup-blocked errors from getRedirectResult (expected on some browsers)
+            if (err.code !== 'auth/popup-blocked' && err.code !== 'auth/popup-closed-by-user') {
+                console.error('Redirect sign-in failed:', err);
+                showNotification('Sign-in failed: ' + err.message);
+            }
         });
 
         firebase.auth().onAuthStateChanged(function (user) {
@@ -132,7 +135,15 @@
         }
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope(GCAL_SCOPES);
-        firebase.auth().signInWithRedirect(provider);
+        firebase.auth().signInWithPopup(provider).then(handleSignInResult).catch(function (err) {
+            if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+                // Popup blocked — fall back to redirect
+                firebase.auth().signInWithRedirect(provider);
+            } else {
+                console.error('Sign-in failed:', err);
+                showNotification('Sign-in failed: ' + err.message);
+            }
+        });
     }
 
     function signOut() {
@@ -150,7 +161,20 @@
         if (!currentUser) return;
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope(GCAL_SCOPES);
-        currentUser.reauthenticateWithRedirect(provider);
+        currentUser.reauthenticateWithPopup(provider).then(function (result) {
+            if (result.credential && result.credential.accessToken) {
+                gCalAccessToken = result.credential.accessToken;
+                localStorage.setItem('gCalAccessToken', gCalAccessToken);
+                updateCalendarSyncUI(true);
+                fetchCalendarEvents();
+            }
+        }).catch(function (err) {
+            if (err.code === 'auth/popup-blocked') {
+                currentUser.reauthenticateWithRedirect(provider);
+            } else {
+                console.error('Calendar token refresh failed:', err);
+            }
+        });
     }
 
     function scheduleSyncToCloud() {
@@ -1547,7 +1571,14 @@
         // Re-sign in with calendar scope to get an OAuth access token
         var provider = new firebase.auth.GoogleAuthProvider();
         provider.addScope(GCAL_SCOPES);
-        firebase.auth().signInWithRedirect(provider);
+        firebase.auth().signInWithPopup(provider).then(handleSignInResult).catch(function (err) {
+            if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+                firebase.auth().signInWithRedirect(provider);
+            } else {
+                console.error('Calendar connect failed:', err);
+                showNotification('Could not connect calendar: ' + err.message);
+            }
+        });
     }
 
     function fetchCalendarEvents() {
