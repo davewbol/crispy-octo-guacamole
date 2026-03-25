@@ -76,35 +76,37 @@
 
         db = firebase.firestore();
 
-        // Keep the user signed in across page reloads and browser restarts
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-        firebase.auth().onAuthStateChanged(function (user) {
-            currentUser = user;
-            if (user) {
-                syncEnabled = true;
-                updateAuthUI(user);
-                // Restore Google Calendar token from localStorage
-                var savedToken = localStorage.getItem('gCalAccessToken');
-                if (savedToken && !gCalAccessToken) {
-                    gCalAccessToken = savedToken;
-                    updateCalendarSyncUI(true);
-                }
-                syncFromCloud().then(function () {
-                    checkAndRunRollover();
-                    renderDay();
-                    // Auto-fetch calendar events if token is available
-                    if (gCalAccessToken) {
-                        fetchCalendarEvents();
-                    } else if (localStorage.getItem(GCAL_CONNECTED_KEY) === 'true') {
-                        // User previously connected calendar — silently re-acquire token
-                        refreshCalendarToken();
+        // Keep the user signed in across page reloads and browser restarts.
+        // Wait for persistence to be set before listening for auth state,
+        // so the stored session is available when onAuthStateChanged fires.
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function () {
+            firebase.auth().onAuthStateChanged(function (user) {
+                currentUser = user;
+                if (user) {
+                    syncEnabled = true;
+                    updateAuthUI(user);
+                    // Restore Google Calendar token from localStorage
+                    var savedToken = localStorage.getItem('gCalAccessToken');
+                    if (savedToken && !gCalAccessToken) {
+                        gCalAccessToken = savedToken;
+                        updateCalendarSyncUI(true);
                     }
-                });
-            } else {
-                syncEnabled = false;
-                updateAuthUI(null);
-            }
+                    syncFromCloud().then(function () {
+                        checkAndRunRollover();
+                        renderDay();
+                        // Auto-fetch calendar events if token is available
+                        if (gCalAccessToken) {
+                            fetchCalendarEvents();
+                        } else if (localStorage.getItem(GCAL_CONNECTED_KEY) === 'true') {
+                            // User previously connected calendar — silently re-acquire token
+                            refreshCalendarToken();
+                        }
+                    });
+                } else {
+                    syncEnabled = false;
+                    updateAuthUI(null);
+                }
+            });
         });
     }
 
