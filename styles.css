@@ -37,7 +37,7 @@ body {
     padding: 16px;
     overflow-y: auto;
 }
-.sb-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+.sb-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; text-decoration: none; color: inherit; }
 .sb-owl { font-size: 24px; }
 .sb-brand { font-weight: var(--font-weight-bold); font-size: 15px; color: var(--gh-white); letter-spacing: var(--tracking-h2); }
 .sb-section { font-size: 10px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--gh-teal-300); margin: 16px 0 6px; }
