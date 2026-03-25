@@ -79,9 +79,26 @@
 
         // LOCAL persistence is the default for Firebase web apps —
         // sessions survive page reloads and browser restarts via IndexedDB.
-        // Register the auth listener immediately so we don't miss events.
-        var authResolved = false;
+        var authSettled = false;
+        var fallbackTimer = null;
+
+        // If user was previously signed in, give Firebase a few seconds to
+        // restore the session before showing the signed-out UI.
+        var wasPreviouslySignedIn = localStorage.getItem('fcplanner_was_signed_in') === 'true';
+        if (wasPreviouslySignedIn) {
+            fallbackTimer = setTimeout(function () {
+                if (!authSettled) {
+                    authSettled = true;
+                    syncEnabled = false;
+                    localStorage.removeItem('fcplanner_was_signed_in');
+                    updateAuthUI(null);
+                }
+            }, 3000);
+        }
+
         firebase.auth().onAuthStateChanged(function (user) {
+            if (fallbackTimer) clearTimeout(fallbackTimer);
+            authSettled = true;
             currentUser = user;
             if (user) {
                 syncEnabled = true;
@@ -104,17 +121,11 @@
                         refreshCalendarToken();
                     }
                 });
-            } else if (!authResolved && localStorage.getItem('fcplanner_was_signed_in') === 'true') {
-                // First callback is null but user was previously signed in —
-                // Firebase is still loading the session from IndexedDB.
-                // Keep showing "Connecting..." instead of flashing "Sign in".
-                // If the user truly signed out, the next callback will confirm it.
             } else {
                 syncEnabled = false;
                 localStorage.removeItem('fcplanner_was_signed_in');
                 updateAuthUI(null);
             }
-            authResolved = true;
         });
     }
 
