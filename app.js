@@ -382,6 +382,7 @@
             authLabel.textContent = email && firstName ? email + ' (' + firstName + ')' : email || user.displayName || 'Signed in';
             if (sbUserName) sbUserName.textContent = user.displayName || email || 'Signed in';
             if (sbAvatar) sbAvatar.textContent = (firstName || email || '?').charAt(0).toUpperCase();
+            setSyncStatus('synced');
         } else {
             signInBtn.classList.remove('hidden');
             signOutBtn.classList.add('hidden');
