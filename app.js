@@ -71,42 +71,50 @@
     function initFirebase() {
         if (!isFirebaseAvailable()) {
             console.log('Firebase not configured — running in offline mode.');
+            setSyncStatus('offline');
             return;
         }
 
         db = firebase.firestore();
 
-        // Keep the user signed in across page reloads and browser restarts.
-        // Wait for persistence to be set before listening for auth state,
-        // so the stored session is available when onAuthStateChanged fires.
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function () {
-            firebase.auth().onAuthStateChanged(function (user) {
-                currentUser = user;
-                if (user) {
-                    syncEnabled = true;
-                    updateAuthUI(user);
-                    // Restore Google Calendar token from localStorage
-                    var savedToken = localStorage.getItem('gCalAccessToken');
-                    if (savedToken && !gCalAccessToken) {
-                        gCalAccessToken = savedToken;
-                        updateCalendarSyncUI(true);
-                    }
-                    syncFromCloud().then(function () {
-                        checkAndRunRollover();
-                        renderDay();
-                        // Auto-fetch calendar events if token is available
-                        if (gCalAccessToken) {
-                            fetchCalendarEvents();
-                        } else if (localStorage.getItem(GCAL_CONNECTED_KEY) === 'true') {
-                            // User previously connected calendar — silently re-acquire token
-                            refreshCalendarToken();
-                        }
-                    });
-                } else {
-                    syncEnabled = false;
-                    updateAuthUI(null);
+        // LOCAL persistence is the default for Firebase web apps —
+        // sessions survive page reloads and browser restarts via IndexedDB.
+        // Register the auth listener immediately so we don't miss events.
+        var authResolved = false;
+        firebase.auth().onAuthStateChanged(function (user) {
+            currentUser = user;
+            if (user) {
+                syncEnabled = true;
+                localStorage.setItem('fcplanner_was_signed_in', 'true');
+                updateAuthUI(user);
+                // Restore Google Calendar token from localStorage
+                var savedToken = localStorage.getItem('gCalAccessToken');
+                if (savedToken && !gCalAccessToken) {
+                    gCalAccessToken = savedToken;
+                    updateCalendarSyncUI(true);
                 }
-            });
+                syncFromCloud().then(function () {
+                    checkAndRunRollover();
+                    renderDay();
+                    // Auto-fetch calendar events if token is available
+                    if (gCalAccessToken) {
+                        fetchCalendarEvents();
+                    } else if (localStorage.getItem(GCAL_CONNECTED_KEY) === 'true') {
+                        // User previously connected calendar — silently re-acquire token
+                        refreshCalendarToken();
+                    }
+                });
+            } else if (!authResolved && localStorage.getItem('fcplanner_was_signed_in') === 'true') {
+                // First callback is null but user was previously signed in —
+                // Firebase is still loading the session from IndexedDB.
+                // Keep showing "Connecting..." instead of flashing "Sign in".
+                // If the user truly signed out, the next callback will confirm it.
+            } else {
+                syncEnabled = false;
+                localStorage.removeItem('fcplanner_was_signed_in');
+                updateAuthUI(null);
+            }
+            authResolved = true;
         });
     }
 
@@ -147,6 +155,7 @@
         gCalAccessToken = null;
         localStorage.removeItem('gCalAccessToken');
         localStorage.removeItem(GCAL_CONNECTED_KEY);
+        localStorage.removeItem('fcplanner_was_signed_in');
         updateCalendarSyncUI(false);
         firebase.auth().signOut().catch(function (err) {
             console.error('Sign-out failed:', err);
