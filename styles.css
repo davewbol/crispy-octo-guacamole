@@ -1038,13 +1038,14 @@ html, body {
     .ps-headline { font-size: 17px; }
     .progress-bar-wrap { max-width: 100% !important; margin: 8px auto 0; }
 
-    /* Task items: single row, compact actions */
+    /* Task items: single row, priority left, checkbox right */
     .task-item {
         padding: 10px 8px;
         gap: 6px;
     }
-    .task-badges { display: none; }
-    .task-actions-compact { gap: 2px; }
+    .task-badges { order: -1; padding-top: 6px; }
+    .task-checkbox { order: 3; }
+    .task-actions-compact { order: 4; gap: 2px; }
     .reorder-btns { display: none; }
     .task-text { font-size: 16px; }
     .task-checkbox { width: 32px; height: 32px; font-size: 16px; }
