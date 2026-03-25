@@ -76,6 +76,9 @@
 
         db = firebase.firestore();
 
+        // Keep the user signed in across page reloads and browser restarts
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
         firebase.auth().onAuthStateChanged(function (user) {
             currentUser = user;
             if (user) {
