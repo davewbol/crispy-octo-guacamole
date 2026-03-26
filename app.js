@@ -386,6 +386,13 @@
         var sbUserName = document.getElementById('sb-user-name');
         var sbAvatar = document.getElementById('sb-avatar');
 
+        // Mobile auth banner elements
+        var mabSignedOut = document.getElementById('mab-signed-out');
+        var mabSignedIn = document.getElementById('mab-signed-in');
+        var mabName = document.getElementById('mab-name');
+        var mabAvatar = document.getElementById('mab-avatar');
+        var mabStatus = document.getElementById('mab-status');
+
         if (user) {
             signInBtn.classList.add('hidden');
             signOutBtn.classList.remove('hidden');
@@ -396,6 +403,14 @@
             authLabel.textContent = email && firstName ? email + ' (' + firstName + ')' : email || user.displayName || 'Signed in';
             if (sbUserName) sbUserName.textContent = user.displayName || email || 'Signed in';
             if (sbAvatar) sbAvatar.textContent = (firstName || email || '?').charAt(0).toUpperCase();
+
+            // Mobile banner: show signed-in state
+            if (mabSignedOut) mabSignedOut.classList.add('hidden');
+            if (mabSignedIn) mabSignedIn.classList.remove('hidden');
+            if (mabName) mabName.textContent = user.displayName || email || 'Signed in';
+            if (mabAvatar) mabAvatar.textContent = (firstName || email || '?').charAt(0).toUpperCase();
+            if (mabStatus) mabStatus.textContent = 'Synced';
+
             setSyncStatus('synced');
         } else {
             signInBtn.classList.remove('hidden');
@@ -405,6 +420,11 @@
             authLabel.textContent = 'Offline mode';
             if (sbUserName) sbUserName.textContent = 'Not signed in';
             if (sbAvatar) sbAvatar.textContent = '?';
+
+            // Mobile banner: show signed-out state
+            if (mabSignedOut) mabSignedOut.classList.remove('hidden');
+            if (mabSignedIn) mabSignedIn.classList.add('hidden');
+
             setSyncStatus('offline');
         }
     }
@@ -416,6 +436,7 @@
         var sbIcon = document.getElementById('sb-sync-icon');
         var sbLabel = document.getElementById('sb-sync-label');
         var navSync = document.getElementById('nav-sync');
+        var mabStatus = document.getElementById('mab-status');
 
         // Toggle offline highlight class on the nav item (used by mobile CSS)
         if (navSync) {
@@ -428,12 +449,14 @@
                 indicator.title = 'Syncing...';
                 if (sbLabel) sbLabel.textContent = 'Syncing...';
                 if (sbIcon) sbIcon.style.color = 'var(--gh-amber-400)';
+                if (mabStatus) mabStatus.textContent = 'Syncing...';
                 break;
             case 'synced':
                 indicator.classList.add('sync-synced');
                 indicator.title = 'Synced to cloud';
                 if (sbLabel) sbLabel.textContent = 'Synced';
                 if (sbIcon) sbIcon.style.color = 'var(--gh-sage-400)';
+                if (mabStatus) mabStatus.textContent = 'Synced';
                 break;
             case 'error':
                 indicator.classList.add('sync-error');
@@ -1559,9 +1582,13 @@
             });
         }
 
-        // Auth buttons
+        // Auth buttons (desktop sidebar + mobile banner)
         document.getElementById('sign-in-btn').addEventListener('click', signIn);
         document.getElementById('sign-out-btn').addEventListener('click', signOut);
+        var mobileSignIn = document.getElementById('mobile-sign-in-btn');
+        var mobileSignOut = document.getElementById('mobile-sign-out-btn');
+        if (mobileSignIn) mobileSignIn.addEventListener('click', signIn);
+        if (mobileSignOut) mobileSignOut.addEventListener('click', signOut);
 
         // Clicking the sync status item in sidebar triggers sign-in (if offline) or manual sync
         document.getElementById('nav-sync').addEventListener('click', function () {

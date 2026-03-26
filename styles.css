@@ -58,6 +58,9 @@ body {
 #sign-in-btn.sb-auth-btn { background: var(--gh-amber-400); color: var(--gh-teal-800); border-color: var(--gh-amber-400); font-weight: var(--font-weight-bold); }
 .sb-settings { margin-left: auto; }
 
+/* === Mobile Auth Banner (hidden on desktop) === */
+.mobile-auth-banner { display: none; }
+
 /* === Main Content === */
 .main {
     flex: 1;
@@ -1018,10 +1021,64 @@ html, body {
     .sb-item { padding: 6px 10px; font-size: 12px; white-space: nowrap; flex-shrink: 0; justify-content: flex-start; }
     .sb-item .icon { font-size: 14px; width: auto; }
     .sb-user { display: none; }
-    /* Make the sync/sign-in nav item stand out on mobile */
-    #nav-sync { margin-left: auto; }
-    #nav-sync.sync-offline { background: var(--gh-amber-400); color: var(--gh-teal-800); font-weight: var(--font-weight-bold); border-radius: var(--radius-sm); }
+    #nav-sync { display: none; }
     .main { overflow-y: auto; flex: 1; }
+
+    /* Mobile auth banner */
+    .mobile-auth-banner {
+        display: block;
+        background: var(--gh-teal-800);
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .mab-signed-out {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .mab-icon { font-size: 16px; color: var(--gh-teal-300); flex-shrink: 0; }
+    .mab-text { font-size: 12px; color: var(--gh-teal-200); flex: 1; }
+    .mab-btn {
+        background: var(--gh-amber-400);
+        color: var(--gh-teal-800);
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: var(--font-weight-bold);
+        font-family: inherit;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .mab-btn-outline {
+        background: transparent;
+        color: var(--gh-teal-300);
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 6px 12px;
+        font-weight: var(--font-weight-regular);
+    }
+    .mab-signed-in {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .mab-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-full);
+        background: var(--gh-teal-600);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: var(--font-weight-bold);
+        color: var(--gh-white);
+        flex-shrink: 0;
+    }
+    .mab-info { flex: 1; min-width: 0; }
+    .mab-name { font-size: 13px; font-weight: var(--font-weight-bold); color: var(--gh-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mab-status { font-size: 11px; color: var(--gh-sage-400); }
 
     /* Topbar: two rows — nav on top, calendar sync below */
     .topbar { padding: 8px 10px; gap: 6px; flex-wrap: wrap; }

@@ -60,6 +60,23 @@
 
         <!-- Main content -->
         <div class="main">
+            <!-- Mobile auth banner (visible only on mobile) -->
+            <div class="mobile-auth-banner" id="mobile-auth-banner">
+                <div class="mab-signed-out" id="mab-signed-out">
+                    <span class="mab-icon">&#9729;</span>
+                    <span class="mab-text">Sign in to sync your tasks &amp; calendar</span>
+                    <button id="mobile-sign-in-btn" class="mab-btn">Sign in with Google</button>
+                </div>
+                <div class="mab-signed-in hidden" id="mab-signed-in">
+                    <div class="mab-avatar" id="mab-avatar">?</div>
+                    <div class="mab-info">
+                        <div class="mab-name" id="mab-name">Signed in</div>
+                        <div class="mab-status" id="mab-status">Synced</div>
+                    </div>
+                    <button id="mobile-sign-out-btn" class="mab-btn mab-btn-outline">Sign out</button>
+                </div>
+            </div>
+
             <!-- Top bar -->
             <div class="topbar">
                 <button id="prev-day" class="btn btn-icon" title="Previous day">&#8592;</button>
