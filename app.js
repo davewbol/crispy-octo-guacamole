@@ -355,15 +355,26 @@
                 taskMap[cloudTasks[j].id] = cloudTasks[j];
             }
         }
-        // Deduplicate by content — if two tasks have the same text, keep the cloud version
+        // Deduplicate by content — if two tasks have the same text,
+        // keep the one with the most advanced status
+        var statusRank = { completed: 3, forwarded: 2, cancelled: 2, open: 1 };
         var contentMap = {};
         var result = [];
         var tasks = Object.keys(taskMap).map(function (id) { return taskMap[id]; });
         for (var m = 0; m < tasks.length; m++) {
             var contentKey = tasks[m].priority + '|' + tasks[m].text.trim().toLowerCase();
-            if (!contentMap[contentKey]) {
-                contentMap[contentKey] = true;
+            var existing = contentMap[contentKey];
+            if (!existing) {
+                contentMap[contentKey] = { index: result.length, task: tasks[m] };
                 result.push(tasks[m]);
+            } else {
+                // Keep whichever version is further along
+                var existingRank = statusRank[existing.task.status] || 0;
+                var newRank = statusRank[tasks[m].status] || 0;
+                if (newRank > existingRank) {
+                    result[existing.index] = tasks[m];
+                    contentMap[contentKey] = { index: existing.index, task: tasks[m] };
+                }
             }
         }
         return result;
