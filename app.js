@@ -77,16 +77,23 @@
 
         db = firebase.firestore();
 
-        // Explicitly set LOCAL persistence so the session survives
-        // page reloads. Called at init before any auth operations.
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function (err) {
-            console.warn('Could not set auth persistence:', err);
+        // Check for redirect result first (from auto-reauth redirect)
+        firebase.auth().getRedirectResult().then(function (result) {
+            if (result && result.credential && result.credential.accessToken) {
+                gCalAccessToken = result.credential.accessToken;
+                localStorage.setItem('gCalAccessToken', gCalAccessToken);
+                localStorage.setItem(GCAL_CONNECTED_KEY, 'true');
+                updateCalendarSyncUI(true);
+            }
+        }).catch(function (err) {
+            console.error('Redirect result error:', err);
         });
 
         firebase.auth().onAuthStateChanged(function (user) {
             currentUser = user;
             if (user) {
                 syncEnabled = true;
+                localStorage.setItem('fcplanner_was_signed_in', 'true');
                 updateAuthUI(user);
                 // Restore Google Calendar token from localStorage
                 var savedToken = localStorage.getItem('gCalAccessToken');
@@ -97,7 +104,6 @@
                 syncFromCloud().then(function () {
                     checkAndRunRollover();
                     renderDay();
-                    // Auto-fetch calendar events if token is available
                     if (gCalAccessToken) {
                         fetchCalendarEvents();
                     } else if (localStorage.getItem(GCAL_CONNECTED_KEY) === 'true') {
@@ -105,6 +111,15 @@
                     }
                 });
             } else {
+                // Firebase session lost — if user was previously signed in,
+                // silently re-authenticate via redirect
+                if (localStorage.getItem('fcplanner_was_signed_in') === 'true') {
+                    var provider = new firebase.auth.GoogleAuthProvider();
+                    provider.addScope(GCAL_SCOPES);
+                    provider.setCustomParameters({ prompt: 'none' });
+                    firebase.auth().signInWithRedirect(provider);
+                    return; // Don't update UI — redirect will reload the page
+                }
                 syncEnabled = false;
                 updateAuthUI(null);
             }
@@ -115,6 +130,7 @@
         if (result && result.user) {
             currentUser = result.user;
             syncEnabled = true;
+            localStorage.setItem('fcplanner_was_signed_in', 'true');
             updateAuthUI(result.user);
         }
         if (result && result.credential && result.credential.accessToken) {
