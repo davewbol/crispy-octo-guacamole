@@ -247,9 +247,28 @@
                     cloudDays[dayDoc.id] = dayDoc.data();
                 });
 
-                // Merge: cloud data wins for days that exist in cloud,
-                // local-only days are preserved
-                mergeData(cloudDays, cloudSettings);
+                var hasCloudData = Object.keys(cloudDays).length > 0;
+
+                if (hasCloudData) {
+                    // Cloud has data — use cloud as the source of truth.
+                    // Replace local days that exist in cloud; keep local-only days.
+                    Object.keys(cloudDays).forEach(function (dateStr) {
+                        data.days[dateStr] = normalizeDayData(cloudDays[dateStr]);
+                    });
+                    if (cloudSettings) {
+                        if (cloudSettings.lastVisitedDate) {
+                            data.settings.lastVisitedDate = cloudSettings.lastVisitedDate;
+                        }
+                        if (cloudSettings.theme) {
+                            data.settings.theme = cloudSettings.theme;
+                        }
+                        if (cloudSettings.autoRollover !== undefined) {
+                            data.settings.autoRollover = cloudSettings.autoRollover;
+                        }
+                    }
+                }
+                // If no cloud data, local data is kept as-is and will sync up
+
                 saveDataLocalOnly();
                 setSyncStatus('synced');
             });
