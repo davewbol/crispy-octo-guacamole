@@ -102,6 +102,7 @@
                     updateCalendarSyncUI(true);
                 }
                 syncFromCloud().then(function () {
+                    cleanupBadRollover();
                     checkAndRunRollover();
                     renderDay();
                     if (gCalAccessToken) {
@@ -1066,14 +1067,35 @@
             return;
         }
 
+        // Build a set of task texts already in today to prevent duplicates
+        var todayDay = getDayData(today);
+        var existingTexts = {};
+        todayDay.tasks.forEach(function (t) {
+            existingTexts[t.text.trim().toLowerCase()] = true;
+        });
+
         var rolledCount = 0;
         var d = lastDate;
         while (d < today) {
             var day = data.days[d];
             if (day) {
-                var openTasks = day.tasks.filter(function (t) { return t.status === 'open'; });
+                var openTasks = day.tasks.filter(function (t) {
+                    // Only roll over genuinely open user tasks:
+                    // - Skip calendar events (they belong to their original date)
+                    // - Skip already-forwarded tasks
+                    return t.status === 'open' && !t.calendarEventId && t.status !== 'forwarded';
+                });
                 for (var i = 0; i < openTasks.length; i++) {
+                    // Skip if an identical task already exists in today (prevent duplicates)
+                    var key = openTasks[i].text.trim().toLowerCase();
+                    if (existingTexts[key]) {
+                        // Mark the source as forwarded without creating a duplicate
+                        openTasks[i].status = 'forwarded';
+                        openTasks[i].forwardedTo = today;
+                        continue;
+                    }
                     forwardTask(openTasks[i].id, today, d);
+                    existingTexts[key] = true;
                     rolledCount++;
                 }
             }
@@ -1086,6 +1108,70 @@
         if (rolledCount > 0) {
             showNotification(rolledCount + ' task' + (rolledCount > 1 ? 's' : '') + ' rolled over to today.');
         }
+    }
+
+    // One-time cleanup: remove calendar events and duplicates that were
+    // incorrectly rolled over into today (or any day) by earlier buggy rollover logic.
+    function cleanupBadRollover() {
+        var cleanupKey = 'fcplanner_rollover_cleanup_v1';
+        if (localStorage.getItem(cleanupKey)) return false;
+
+        var changed = false;
+        var today = getTodayStr();
+
+        Object.keys(data.days).forEach(function (dateStr) {
+            var day = data.days[dateStr];
+            if (!day || !day.tasks) return;
+
+            var seen = {};
+            var cleanTasks = [];
+
+            for (var i = 0; i < day.tasks.length; i++) {
+                var t = day.tasks[i];
+
+                // Remove calendar events that were forwarded to a different day
+                // (they have time prefixes like "10:00 AM —" and no calendarEventId
+                // because forwardTask strips it)
+                var isForwardedCalEvent = !t.calendarEventId &&
+                    /^\d{1,2}:\d{2}\s*(AM|PM)\s*[—–-]/.test(t.text);
+
+                // If this looks like a forwarded calendar event on a day other than
+                // the one it was originally created, skip it
+                if (isForwardedCalEvent && t.status === 'open') {
+                    changed = true;
+                    continue;
+                }
+
+                // Remove duplicate tasks (same text, keep first occurrence)
+                var key = t.text.trim().toLowerCase();
+                if (seen[key] && t.status === 'open') {
+                    // Duplicate open task — skip it
+                    changed = true;
+                    continue;
+                }
+                seen[key] = true;
+                cleanTasks.push(t);
+            }
+
+            if (cleanTasks.length !== day.tasks.length) {
+                day.tasks = cleanTasks;
+                // Renumber tasks within each priority
+                ['A', 'B', 'C'].forEach(function (p) {
+                    var num = 1;
+                    day.tasks.forEach(function (t) {
+                        if (t.priority === p) { t.number = num++; }
+                    });
+                });
+            }
+        });
+
+        localStorage.setItem(cleanupKey, 'true');
+
+        if (changed) {
+            saveData();
+            console.log('Cleanup: removed incorrectly rolled-over calendar events and duplicates');
+        }
+        return changed;
     }
 
     /* ===========================
@@ -2196,8 +2282,9 @@
             currentDate = hash;
         }
 
-        // Only run rollover here for offline users; signed-in users
+        // Run cleanup + rollover for offline users; signed-in users
         // run it after syncFromCloud to avoid double-rollover duplicates
+        cleanupBadRollover();
         if (!syncEnabled) {
             checkAndRunRollover();
         }
