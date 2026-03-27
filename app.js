@@ -187,17 +187,37 @@
         });
     }
 
+    var syncPending = false;
+
     function scheduleSyncToCloud() {
         if (!syncEnabled || !currentUser) return;
+        syncPending = true;
         clearTimeout(syncDebounceTimer);
         syncDebounceTimer = setTimeout(function () {
             syncToCloud();
         }, 1000);
     }
 
-    function syncToCloud() {
-        if (!syncEnabled || !currentUser || !db) return;
+    function sanitizeForFirestore(obj) {
+        if (Array.isArray(obj)) {
+            return obj.map(function (item) { return sanitizeForFirestore(item); });
+        }
+        if (obj !== null && typeof obj === 'object') {
+            var clean = {};
+            Object.keys(obj).forEach(function (key) {
+                if (obj[key] !== undefined) {
+                    clean[key] = sanitizeForFirestore(obj[key]);
+                }
+            });
+            return clean;
+        }
+        return obj;
+    }
 
+    function syncToCloud() {
+        if (!syncEnabled || !currentUser || !db) return Promise.resolve();
+
+        syncPending = false;
         setSyncStatus('syncing');
 
         var userDocRef = db.collection('planners').doc(currentUser.uid);
@@ -221,7 +241,9 @@
         for (var i = 0; i < dayKeys.length; i++) {
             var dateStr = dayKeys[i];
             var dayDoc = userDocRef.collection('days').doc(dateStr);
-            currentBatch.set(dayDoc, data.days[dateStr]);
+            var cleanDay = sanitizeForFirestore(data.days[dateStr]);
+            cleanDay.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+            currentBatch.set(dayDoc, cleanDay);
             writeCount++;
 
             if (writeCount >= 490) {
@@ -233,14 +255,22 @@
 
         batchPromises.push(currentBatch.commit());
 
-        Promise.all(batchPromises)
+        return Promise.all(batchPromises)
             .then(function () {
+                console.log('Sync to cloud succeeded (' + dayKeys.length + ' days)');
                 setSyncStatus('synced');
             })
             .catch(function (err) {
                 console.error('Sync to cloud failed:', err);
                 setSyncStatus('error');
             });
+    }
+
+    function flushPendingSync() {
+        if (syncPending && syncEnabled && currentUser && db) {
+            clearTimeout(syncDebounceTimer);
+            syncToCloud();
+        }
     }
 
     function syncFromCloud() {
@@ -250,26 +280,35 @@
 
         var userDocRef = db.collection('planners').doc(currentUser.uid);
 
-        return userDocRef.get().then(function (doc) {
+        // Try fetching from server first, fall back to default (may use cache)
+        var getOpts = { source: 'server' };
+        return userDocRef.get(getOpts).catch(function () {
+            return userDocRef.get();
+        }).then(function (doc) {
             var cloudSettings = null;
             if (doc.exists && doc.data().settings) {
                 cloudSettings = doc.data().settings;
             }
 
-            // Fetch all day documents
-            return userDocRef.collection('days').get().then(function (snapshot) {
+            // Fetch all day documents from server (not cache)
+            return userDocRef.collection('days').get(getOpts).catch(function () {
+                return userDocRef.collection('days').get();
+            }).then(function (snapshot) {
                 var cloudDays = {};
                 snapshot.forEach(function (dayDoc) {
                     cloudDays[dayDoc.id] = dayDoc.data();
                 });
 
-                var hasCloudData = Object.keys(cloudDays).length > 0;
+                var cloudDayCount = Object.keys(cloudDays).length;
+                console.log('syncFromCloud: fetched ' + cloudDayCount + ' days from cloud');
 
-                if (hasCloudData) {
+                if (cloudDayCount > 0) {
                     // Cloud has data — use cloud as the source of truth.
                     // Replace local days that exist in cloud; keep local-only days.
                     Object.keys(cloudDays).forEach(function (dateStr) {
-                        data.days[dateStr] = normalizeDayData(cloudDays[dateStr]);
+                        var normalized = normalizeDayData(cloudDays[dateStr]);
+                        console.log('syncFromCloud: day ' + dateStr + ' has ' + normalized.tasks.length + ' tasks');
+                        data.days[dateStr] = normalized;
                     });
                     if (cloudSettings) {
                         if (cloudSettings.lastVisitedDate) {
@@ -1669,6 +1708,21 @@
 
         document.addEventListener('click', function () {
             themeDropdown.classList.add('hidden');
+        });
+
+        // Flush pending sync before page unload (e.g. tab close, refresh)
+        window.addEventListener('beforeunload', function () {
+            flushPendingSync();
+        });
+
+        // Re-sync from cloud when tab becomes visible again
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible' && syncEnabled && currentUser && db) {
+                syncFromCloud().then(function () {
+                    renderDay();
+                    renderCalendarView();
+                });
+            }
         });
     }
 
