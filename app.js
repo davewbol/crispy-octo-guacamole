@@ -522,6 +522,11 @@
        UTILITIES
        =========================== */
 
+    function autoResizeTextarea(el) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
     function getTodayStr() {
         return toDateStr(new Date());
     }
@@ -1579,10 +1584,7 @@
             addTask(priority, text);
         });
 
-        function autoResizeTextarea(el) {
-            el.style.height = 'auto';
-            el.style.height = el.scrollHeight + 'px';
-        }
+
 
         var notesEl = document.getElementById('daily-notes');
         notesEl.addEventListener('input', function () { autoResizeTextarea(notesEl); });
