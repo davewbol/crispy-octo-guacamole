@@ -669,6 +669,12 @@
         var wasAllComplete = isAllCompleted(day);
         task.status = cycle[task.status] || 'open';
         saveData();
+        // Immediately sync status changes (don't rely on debounce)
+        if (syncEnabled && currentUser && db) {
+            clearTimeout(syncDebounceTimer);
+            syncPending = false;
+            syncToCloud();
+        }
         renderDay();
         animateStatusChange(taskId, task.status);
         if (!wasAllComplete && isAllCompleted(day)) {
@@ -1047,13 +1053,16 @@
 
         if (!lastDate) {
             data.settings.lastVisitedDate = today;
-            saveData();
+            saveDataLocalOnly();
             return;
         }
 
         if (lastDate >= today) {
-            data.settings.lastVisitedDate = today;
-            saveData();
+            // Already visited today — no rollover needed, don't trigger cloud sync
+            if (data.settings.lastVisitedDate !== today) {
+                data.settings.lastVisitedDate = today;
+                saveDataLocalOnly();
+            }
             return;
         }
 
