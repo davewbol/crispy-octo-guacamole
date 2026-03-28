@@ -21,7 +21,7 @@ struct TaskListView: View {
         } else {
             LazyVStack(spacing: 0) {
                 ForEach(tasks) { task in
-                    TaskRowView(task: task, theme: theme)
+                    TaskRowView(task: task, theme: theme, priority: task.priority)
                     if task.id != tasks.last?.id {
                         Divider()
                             .background(theme.borderSecondary)

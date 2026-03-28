@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ForwardTaskSheet: View {
-    let theme: AppTheme
     let onForward: (String) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -12,11 +11,44 @@ struct ForwardTaskSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            // Handle
+            RoundedRectangle(cornerRadius: 2)
+                .fill(GHPalette.n200)
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
+
+            // Header
+            HStack {
+                Text("Forward Task")
+                    .font(OutfitFont.font(weight: .heavy, size: 16))
+                    .foregroundStyle(GHPalette.teal800)
+                    .tracking(-0.2)
+
+                Spacer()
+
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13.5, weight: .medium))
+                        .foregroundStyle(GHPalette.n500)
+                        .frame(width: 30, height: 30)
+                        .background(GHPalette.n100)
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+
+            Divider().background(GHPalette.n100)
+
             VStack(spacing: 16) {
-                Text("Forward task to a future date")
-                    .font(.system(size: 15))
-                    .foregroundStyle(theme.textSecondary)
+                Text("Choose a future date to move this task to")
+                    .font(OutfitFont.font(weight: .regular, size: 13.5))
+                    .foregroundStyle(GHPalette.n500)
+                    .padding(.top, 4)
 
                 DatePicker(
                     "Target date",
@@ -25,32 +57,34 @@ struct ForwardTaskSheet: View {
                     displayedComponents: .date
                 )
                 .datePickerStyle(.graphical)
-                .padding(.horizontal)
+                .tint(GHPalette.amber400)
 
-                Spacer()
-            }
-            .padding(.top)
-            .navigationTitle("Forward Task")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Forward") {
-                        let dateStr = DateHelpers.toDateStr(selectedDate)
-                        onForward(dateStr)
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                Button {
+                    let dateStr = DateHelpers.toDateStr(selectedDate)
+                    onForward(dateStr)
+                    dismiss()
+                } label: {
+                    Text("Forward Task \u{2192}")
+                        .font(OutfitFont.font(weight: .bold, size: 15.2))
+                        .foregroundStyle(GHPalette.teal800)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(GHPalette.amber400)
+                        .clipShape(RoundedRectangle(cornerRadius: GHRadius.md))
+                        .shadow(color: GHShadow.amber.color, radius: GHShadow.amber.radius, y: GHShadow.amber.y)
                 }
             }
+            .padding(20)
+
+            Spacer()
         }
+        .background(Color.white)
         .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.hidden)
     }
 }
 
 struct EditForwardDateSheet: View {
-    let theme: AppTheme
     let currentTarget: String
     let sourceDate: String
     let onUpdate: (String) -> Void
@@ -63,8 +97,40 @@ struct EditForwardDateSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
+            // Handle
+            RoundedRectangle(cornerRadius: 2)
+                .fill(GHPalette.n200)
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
+
+            // Header
+            HStack {
+                Text("Edit Forward Date")
+                    .font(OutfitFont.font(weight: .heavy, size: 16))
+                    .foregroundStyle(GHPalette.teal800)
+                    .tracking(-0.2)
+
+                Spacer()
+
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13.5, weight: .medium))
+                        .foregroundStyle(GHPalette.n500)
+                        .frame(width: 30, height: 30)
+                        .background(GHPalette.n100)
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+
+            Divider().background(GHPalette.n100)
+
+            VStack(spacing: 16) {
                 DatePicker(
                     "New date",
                     selection: $selectedDate,
@@ -72,26 +138,30 @@ struct EditForwardDateSheet: View {
                     displayedComponents: .date
                 )
                 .datePickerStyle(.graphical)
-                .padding(.horizontal)
+                .tint(GHPalette.amber400)
 
-                Spacer()
-            }
-            .navigationTitle("Edit Forward Date")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Update") {
-                        let dateStr = DateHelpers.toDateStr(selectedDate)
-                        onUpdate(dateStr)
-                        dismiss()
-                    }
+                Button {
+                    let dateStr = DateHelpers.toDateStr(selectedDate)
+                    onUpdate(dateStr)
+                    dismiss()
+                } label: {
+                    Text("Update Date \u{2192}")
+                        .font(OutfitFont.font(weight: .bold, size: 15.2))
+                        .foregroundStyle(GHPalette.teal800)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(GHPalette.amber400)
+                        .clipShape(RoundedRectangle(cornerRadius: GHRadius.md))
+                        .shadow(color: GHShadow.amber.color, radius: GHShadow.amber.radius, y: GHShadow.amber.y)
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
             }
+            .padding(20)
+
+            Spacer()
         }
+        .background(Color.white)
         .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.hidden)
         .onAppear {
             selectedDate = DateHelpers.parseDate(currentTarget)
         }

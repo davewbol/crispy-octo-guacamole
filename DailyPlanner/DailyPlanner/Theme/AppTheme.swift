@@ -7,38 +7,63 @@ enum GHPalette {
     // Teal scale
     static let teal900 = Color(hex: "0E2424")
     static let teal800 = Color(hex: "1A3A3A")
-    static let teal700 = Color(hex: "2A5050")
-    static let teal600 = Color(hex: "3A6666")
-    static let teal500 = Color(hex: "4A7C7C")
-    static let teal400 = Color(hex: "6B9999")
+    static let teal700 = Color(hex: "234F4F")
+    static let teal600 = Color(hex: "2D6464")
+    static let teal500 = Color(hex: "3A7A7A")
+    static let teal400 = Color(hex: "5A9A9A")
     static let teal300 = Color(hex: "8CB3B3")
-    static let teal200 = Color(hex: "B3CCCC")
-    static let teal100 = Color(hex: "D9E6E6")
-    static let teal50  = Color(hex: "F0F5F5")
+    static let teal200 = Color(hex: "B0D8D8")
+    static let teal100 = Color(hex: "D8EEEE")
+    static let teal50  = Color(hex: "EFF8F8")
     static let teal25  = Color(hex: "F7FAFA")
 
     // Amber scale
-    static let amber500 = Color(hex: "E5A62D")
+    static let amber600 = Color(hex: "C98A00")
+    static let amber500 = Color(hex: "E09B00")
     static let amber400 = Color(hex: "FFB932")
-    static let amber300 = Color(hex: "FFCB66")
-    static let amber200 = Color(hex: "FFDD99")
-    static let amber100 = Color(hex: "FFEECC")
+    static let amber300 = Color(hex: "FFCA62")
+    static let amber200 = Color(hex: "FFDC99")
+    static let amber100 = Color(hex: "FFF0CC")
     static let amber50  = Color(hex: "FFF8E6")
 
-    // Semantic accents
-    static let sage      = Color(hex: "3D9A65")
-    static let sageLight = Color(hex: "E8F5EC")
-    static let sageDark  = Color(hex: "2D7A4D")
-    static let coral      = Color(hex: "F06650")
-    static let coralLight = Color(hex: "FDE8E4")
-    static let coralDark  = Color(hex: "D04A36")
-    static let info       = Color(hex: "3B82F6")
-    static let infoLight  = Color(hex: "E0EDFF")
+    // Sage scale
+    static let sage500 = Color(hex: "2D7A4F")
+    static let sage400 = Color(hex: "3D9A65")
+    static let sage200 = Color(hex: "A8DBBE")
+    static let sage100 = Color(hex: "D4F0E3")
+    static let sage50  = Color(hex: "EEF9F4")
+
+    // Coral scale
+    static let coral500 = Color(hex: "D94F3A")
+    static let coral400 = Color(hex: "F06650")
+    static let coral100 = Color(hex: "FDE8E5")
+
+    // Info
+    static let info      = Color(hex: "3B82F6")
+    static let infoLight = Color(hex: "E0EDFF")
 
     // Neutrals (teal-tinted)
-    static let neutral400 = Color(hex: "8CA0A0")
-    static let neutral300 = Color(hex: "B3C2C2")
-    static let neutral200 = Color(hex: "D9E2E2")
+    static let n900 = Color(hex: "0F1A1A")
+    static let n700 = Color(hex: "2E4040")
+    static let n600 = Color(hex: "4A5E5E")
+    static let n500 = Color(hex: "6B8080")
+    static let n400 = Color(hex: "8FA5A5")
+    static let n300 = Color(hex: "B5C8C8")
+    static let n200 = Color(hex: "D8E6E6")
+    static let n150 = Color(hex: "E6EEEE")
+    static let n100 = Color(hex: "EEF4F4")
+    static let n50  = Color(hex: "F7FAFA")
+
+    // Legacy aliases
+    static let sage      = sage400
+    static let sageLight = sage100
+    static let sageDark  = sage500
+    static let coral      = coral400
+    static let coralLight = coral100
+    static let coralDark  = coral500
+    static let neutral400 = n400
+    static let neutral300 = n300
+    static let neutral200 = n200
 
     // Confetti colors (Golden Hour palette)
     static let confetti: [Color] = [
@@ -59,14 +84,52 @@ enum GHTypography {
     static let leadingTight: CGFloat = 1.2
 }
 
+// MARK: - Font Helper
+
+/// Outfit font with fallback to system rounded.
+/// To use the actual Outfit font, add .ttf files to the Fonts/ directory
+/// and register them in Info.plist under UIAppFonts.
+enum OutfitFont {
+    static func font(weight: Font.Weight, size: CGFloat) -> Font {
+        // Try custom Outfit font first, fall back to system rounded
+        let name = outfitName(for: weight)
+        if let _ = UIFont(name: name, size: size) {
+            return .custom(name, size: size)
+        }
+        return .system(size: size, weight: weight, design: .rounded)
+    }
+
+    private static func outfitName(for weight: Font.Weight) -> String {
+        switch weight {
+        case .light: return "Outfit-Light"
+        case .regular: return "Outfit-Regular"
+        case .medium: return "Outfit-Medium"
+        case .semibold: return "Outfit-SemiBold"
+        case .bold: return "Outfit-Bold"
+        case .heavy: return "Outfit-ExtraBold"
+        case .black: return "Outfit-Black"
+        default: return "Outfit-Regular"
+        }
+    }
+}
+
 // MARK: - Radius Tokens
 
 enum GHRadius {
     static let sm: CGFloat = 6
     static let md: CGFloat = 10
     static let lg: CGFloat = 16
-    static let xl: CGFloat = 24
+    static let xl: CGFloat = 20
     static let full: CGFloat = 9999
+}
+
+// MARK: - Shadow Tokens
+
+enum GHShadow {
+    static let sm = (color: Color(hex: "0E2424").opacity(0.07), radius: CGFloat(2), y: CGFloat(1))
+    static let md = (color: Color(hex: "0E2424").opacity(0.09), radius: CGFloat(7), y: CGFloat(4))
+    static let lg = (color: Color(hex: "0E2424").opacity(0.14), radius: CGFloat(16), y: CGFloat(12))
+    static let amber = (color: GHPalette.amber400.opacity(0.32), radius: CGFloat(10), y: CGFloat(6))
 }
 
 // MARK: - App Theme
@@ -103,7 +166,7 @@ enum AppTheme: String, CaseIterable {
 
     var bgPage: Color {
         switch self {
-        case .classic: return GHPalette.teal25
+        case .classic: return GHPalette.n50
         case .light: return Color(hex: "F2F5F5")
         case .dark: return Color(hex: "0E1A1A")
         }
@@ -191,7 +254,7 @@ enum AppTheme: String, CaseIterable {
 
     var textFaint: Color {
         switch self {
-        case .classic, .light: return GHPalette.neutral400
+        case .classic, .light: return GHPalette.n400
         case .dark: return Color(hex: "5E7A7A")
         }
     }
@@ -204,7 +267,7 @@ enum AppTheme: String, CaseIterable {
 
     var borderPrimary: Color {
         switch self {
-        case .classic: return GHPalette.teal200
+        case .classic: return GHPalette.n200
         case .light: return Color(hex: "C8D4D4")
         case .dark: return Color(hex: "2A4242")
         }
@@ -212,14 +275,14 @@ enum AppTheme: String, CaseIterable {
 
     var borderSecondary: Color {
         switch self {
-        case .classic: return GHPalette.teal100
+        case .classic: return GHPalette.n100
         case .light: return Color(hex: "DCE4E4")
         case .dark: return Color(hex: "1E3434")
         }
     }
 
     var borderInputFocus: Color {
-        GHPalette.teal400
+        GHPalette.teal500
     }
 
     // MARK: - Accent Colors
@@ -230,24 +293,24 @@ enum AppTheme: String, CaseIterable {
     var colorError: Color { GHPalette.coral }
     var colorInfo: Color { GHPalette.info }
 
-    // MARK: - Priority Colors (Golden Hour)
+    // MARK: - Priority Colors
 
-    var priorityA: Color { GHPalette.amber400 }
-    var priorityAText: Color { GHPalette.teal900 }
-    var priorityB: Color {
+    var priorityA: Color { GHPalette.coral400 }
+    var priorityAText: Color { .white }
+    var priorityB: Color { GHPalette.amber400 }
+    var priorityBText: Color { GHPalette.teal800 }
+    var priorityC: Color {
         switch self {
         case .classic, .light: return GHPalette.teal800
         case .dark: return GHPalette.teal400
         }
     }
-    var priorityBText: Color {
+    var priorityCText: Color {
         switch self {
         case .classic, .light: return .white
         case .dark: return GHPalette.teal900
         }
     }
-    var priorityC: Color { GHPalette.neutral400 }
-    var priorityCText: Color { .white }
 
     func priorityColor(_ p: String) -> Color {
         switch p {
@@ -265,14 +328,22 @@ enum AppTheme: String, CaseIterable {
         }
     }
 
+    func priorityBorderColor(_ p: String) -> Color {
+        switch p {
+        case "A": return GHPalette.coral400
+        case "B": return GHPalette.amber400
+        default: return .clear
+        }
+    }
+
     // MARK: - Status Colors
 
     var statusCompleted: Color { GHPalette.sage }
-    var statusCancelled: Color { GHPalette.neutral300 }
+    var statusCancelled: Color { GHPalette.n300 }
     var statusForwarded: Color { GHPalette.amber400 }
     var statusOpen: Color {
         switch self {
-        case .classic: return GHPalette.teal200
+        case .classic: return GHPalette.n300
         case .light: return Color(hex: "C8D4D4")
         case .dark: return Color(hex: "3A5252")
         }
@@ -287,11 +358,33 @@ enum AppTheme: String, CaseIterable {
         }
     }
 
-    // MARK: - Heatmap (Amber scale, not green)
+    // MARK: - Badge Colors
+
+    func badgeBg(for type: String) -> Color {
+        switch type {
+        case "done": return GHPalette.sage100
+        case "amber", "time": return GHPalette.amber100
+        case "teal": return GHPalette.teal100
+        case "coral", "urgent": return GHPalette.coral100
+        default: return GHPalette.n100
+        }
+    }
+
+    func badgeText(for type: String) -> Color {
+        switch type {
+        case "done": return GHPalette.sage500
+        case "amber", "time": return GHPalette.amber600
+        case "teal": return GHPalette.teal600
+        case "coral", "urgent": return GHPalette.coral500
+        default: return GHPalette.n500
+        }
+    }
+
+    // MARK: - Heatmap (Amber scale)
 
     var heatmapEmpty: Color {
         switch self {
-        case .classic: return GHPalette.teal100
+        case .classic: return GHPalette.n100
         case .light: return Color(hex: "DCE4E4")
         case .dark: return Color(hex: "1E3030")
         }
@@ -328,14 +421,14 @@ enum AppTheme: String, CaseIterable {
 
     // MARK: - Date Badge
 
-    var dateBadgeTodayBg: Color { GHPalette.sageLight }
+    var dateBadgeTodayBg: Color { GHPalette.sage100 }
     var dateBadgeTodayText: Color { GHPalette.sage }
-    var dateBadgePastBg: Color { GHPalette.coralLight }
+    var dateBadgePastBg: Color { GHPalette.coral100 }
     var dateBadgePastText: Color { GHPalette.coral }
     var dateBadgeFutureBg: Color { GHPalette.infoLight }
     var dateBadgeFutureText: Color { GHPalette.info }
 
-    func badgeColor(_ type: String) -> Color {
+    func dateBadgeColor(_ type: String) -> Color {
         switch type {
         case "today": return dateBadgeTodayBg
         case "past": return dateBadgePastBg
@@ -343,7 +436,7 @@ enum AppTheme: String, CaseIterable {
         }
     }
 
-    func badgeTextColor(_ type: String) -> Color {
+    func dateBadgeTextColor(_ type: String) -> Color {
         switch type {
         case "today": return dateBadgeTodayText
         case "past": return dateBadgePastText

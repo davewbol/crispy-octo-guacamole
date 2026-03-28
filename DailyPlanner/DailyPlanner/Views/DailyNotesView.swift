@@ -8,30 +8,45 @@ struct DailyNotesView: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("DAILY NOTES / APPOINTMENTS")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(theme.textFaint)
-                .tracking(0.5)
+        VStack(alignment: .leading, spacing: 0) {
+            // Section header
+            Text("\u{1F4DD} Daily Notes")
+                .font(OutfitFont.font(weight: .bold, size: 10.5))
+                .foregroundStyle(GHPalette.n400)
+                .textCase(.uppercase)
+                .tracking(1)
+                .padding(.bottom, 8)
 
-            TextEditor(text: $notes)
-                .font(.system(size: 16))
-                .foregroundStyle(theme.textPrimary)
-                .scrollContentBackground(.hidden)
-                .background(theme.bgInput)
-                .frame(minHeight: 80, maxHeight: 160)
-                .cornerRadius(GHRadius.sm)
-                .overlay(
-                    RoundedRectangle(cornerRadius: GHRadius.sm)
-                        .stroke(isFocused ? theme.borderPrimary : theme.borderSecondary, lineWidth: 1)
-                )
-                .focused($isFocused)
-                .onChange(of: notes) { _, newValue in
-                    viewModel.updateNotes(newValue)
+            // Card
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $notes)
+                    .font(OutfitFont.font(weight: .regular, size: 14))
+                    .foregroundStyle(theme.textPrimary)
+                    .scrollContentBackground(.hidden)
+                    .frame(minHeight: 80, maxHeight: 140)
+                    .padding(12)
+                    .focused($isFocused)
+                    .onChange(of: notes) { _, newValue in
+                        viewModel.updateNotes(newValue)
+                    }
+
+                if notes.isEmpty && !isFocused {
+                    Text("Jot down notes, appointments, or reminders...")
+                        .font(OutfitFont.font(weight: .regular, size: 13.5))
+                        .foregroundStyle(GHPalette.n300)
+                        .padding(.horizontal, 17)
+                        .padding(.top, 20)
+                        .allowsHitTesting(false)
                 }
+            }
+            .background(theme.bgCard)
+            .clipShape(RoundedRectangle(cornerRadius: GHRadius.xl))
+            .overlay(
+                RoundedRectangle(cornerRadius: GHRadius.xl)
+                    .stroke(isFocused ? GHPalette.teal500 : theme.borderPrimary, lineWidth: 1.5)
+            )
+            .shadow(color: GHShadow.sm.color, radius: GHShadow.sm.radius, y: GHShadow.sm.y)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
         .onAppear { notes = viewModel.currentDay.notes }
         .onChange(of: viewModel.currentDate) { _, _ in
             notes = viewModel.currentDay.notes

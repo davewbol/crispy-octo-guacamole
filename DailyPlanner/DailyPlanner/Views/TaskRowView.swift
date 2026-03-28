@@ -4,173 +4,167 @@ struct TaskRowView: View {
     @EnvironmentObject var viewModel: PlannerViewModel
     let task: PlannerTask
     let theme: AppTheme
+    let priority: String
 
-    @State private var editingText: String = ""
     @State private var isEditing = false
+    @State private var editText: String = ""
     @State private var showForwardSheet = false
-    @State private var showEditForwardSheet = false
-    @State private var showDeleteConfirm = false
-    @State private var showPriorityMenu = false
+    @FocusState private var textFocused: Bool
+
+    private var isDone: Bool { task.status == "completed" }
+    private var isCancelled: Bool { task.status == "cancelled" }
+    private var isForwarded: Bool { task.status == "forwarded" }
+    private var isHighPriority: Bool { priority == "A" || priority == "B" }
+    private var borderColor: Color { theme.priorityBorderColor(priority) }
 
     var body: some View {
-        HStack(spacing: 8) {
-            // Priority badge
-            Menu {
-                ForEach(["A", "B", "C"], id: \.self) { p in
-                    Button(priorityLabel(p)) {
-                        viewModel.changePriority(task.id, to: p)
-                    }
-                }
-            } label: {
-                Text(task.priority)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(theme.priorityTextColor(task.priority))
-                    .frame(width: 24, height: 24)
-                    .background(theme.priorityColor(task.priority))
-                    .clipShape(Circle())
-            }
-            .disabled(task.status == "forwarded")
-
-            // Number
-            Text("\(task.number)")
-                .font(.system(size: 13, weight: .medium, design: .monospaced))
-                .foregroundStyle(theme.textFaint)
-                .frame(width: 20)
-
-            // Task text
-            if isEditing && task.status != "forwarded" {
-                TextField("Task", text: $editingText, onCommit: {
-                    viewModel.updateTaskText(task.id, newText: editingText)
-                    isEditing = false
-                })
-                .textFieldStyle(.plain)
-                .font(.system(size: 16))
-                .foregroundStyle(theme.textPrimary)
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
-                .background(theme.bgInput)
-                .cornerRadius(GHRadius.sm)
-                .overlay(
-                    RoundedRectangle(cornerRadius: GHRadius.sm)
-                        .stroke(theme.borderPrimary, lineWidth: 1)
-                )
-            } else {
-                Text(task.text)
-                    .font(.system(size: 16))
-                    .foregroundStyle(textColor)
-                    .strikethrough(task.status == "completed" || task.status == "cancelled")
-                    .opacity(task.status == "cancelled" || task.status == "forwarded" ? 0.5 : 1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        guard task.status != "forwarded" else { return }
-                        editingText = task.text
-                        isEditing = true
-                    }
-            }
-
-            // Forwarded-to indicator (tappable to edit date)
-            if let fwd = task.forwardedTo {
-                Button {
-                    showEditForwardSheet = true
-                } label: {
-                    Text("→ \(fwd)")
-                        .font(.system(size: 11))
-                        .foregroundStyle(theme.statusForwarded)
-                }
-            }
-
-            // Status button
+        HStack(spacing: 12) {
+            // Checkbox
             Button {
-                withAnimation(.easeOut(duration: 0.2)) {
-                    viewModel.cycleTaskStatus(task.id)
-                }
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                let impact = UIImpactFeedbackGenerator(style: .light)
+                impact.impactOccurred()
+                viewModel.cycleTaskStatus(task.id)
             } label: {
-                Image(systemName: task.statusIcon)
-                    .font(.system(size: 22))
-                    .foregroundStyle(theme.statusColor(task.status))
+                checkbox
             }
-            .disabled(task.status == "forwarded")
+            .disabled(isForwarded)
 
-            // Action buttons
-            if task.status != "forwarded" {
-                actionButtons
+            // Body
+            VStack(alignment: .leading, spacing: 2) {
+                if isEditing && !isForwarded {
+                    TextField("Task name", text: $editText)
+                        .font(OutfitFont.font(weight: .medium, size: 14.5))
+                        .foregroundStyle(theme.textPrimary)
+                        .focused($textFocused)
+                        .onSubmit { commitEdit() }
+                } else {
+                    Text(task.text)
+                        .font(OutfitFont.font(weight: isDone || isCancelled ? .regular : .medium, size: 14.5))
+                        .foregroundStyle(isDone || isCancelled ? GHPalette.n400 : theme.textPrimary)
+                        .strikethrough(isDone || isCancelled, color: GHPalette.n400)
+                        .lineLimit(2)
+                        .onTapGesture {
+                            guard !isForwarded else { return }
+                            editText = task.text
+                            isEditing = true
+                            textFocused = true
+                        }
+                }
+
+                if isForwarded, let fwd = task.forwardedTo {
+                    Text("\u{2192} \(fwd)")
+                        .font(OutfitFont.font(weight: .medium, size: 11.5))
+                        .foregroundStyle(GHPalette.amber600)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Badge
+            statusBadge
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
+        .overlay(
+            borderColor != .clear ?
+                Rectangle()
+                    .fill(borderColor)
+                    .frame(width: 3)
+                : nil,
+            alignment: .leading
+        )
+        .contentShape(Rectangle())
+        .opacity(isCancelled ? 0.5 : (isForwarded ? 0.6 : 1))
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            if !isForwarded {
+                Button(role: .destructive) {
+                    viewModel.deleteTask(task.id)
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+
+                Button {
+                    showForwardSheet = true
+                } label: {
+                    Label("Forward", systemImage: "arrow.right")
+                }
+                .tint(GHPalette.amber400)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(theme.bgCard)
         .sheet(isPresented: $showForwardSheet) {
-            ForwardTaskSheet(theme: theme) { targetDate in
+            ForwardTaskSheet { targetDate in
                 viewModel.forwardTask(task.id, to: targetDate)
             }
         }
-        .sheet(isPresented: $showEditForwardSheet) {
-            EditForwardDateSheet(
-                theme: theme,
-                currentTarget: task.forwardedTo ?? "",
-                sourceDate: viewModel.currentDate
-            ) { newDate in
-                viewModel.changeForwardDate(task.id, to: newDate)
+    }
+
+    // MARK: - Checkbox
+
+    private var checkbox: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(isDone ? Color.clear : GHPalette.n300, lineWidth: 1.5)
+                .frame(width: 22, height: 22)
+
+            if isDone {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isHighPriority ? GHPalette.amber400 : GHPalette.teal800)
+                    .frame(width: 22, height: 22)
+
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(isHighPriority ? GHPalette.teal800 : .white)
+            } else if isCancelled {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(GHPalette.n300)
+                    .frame(width: 22, height: 22)
+
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.white)
+            } else if isForwarded {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(GHPalette.amber400.opacity(0.3))
+                    .frame(width: 22, height: 22)
+
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(GHPalette.amber600)
             }
-        }
-        .alert("Delete Task", isPresented: $showDeleteConfirm) {
-            Button("Delete", role: .destructive) {
-                viewModel.deleteTask(task.id)
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Are you sure you want to delete this task?")
         }
     }
 
-    private var actionButtons: some View {
-        HStack(spacing: 2) {
-            Button { viewModel.moveTask(task.id, direction: -1) } label: {
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 11))
-                    .foregroundStyle(theme.textFaint)
-            }
-            .frame(width: 28, height: 28)
+    // MARK: - Badge
 
-            Button { viewModel.moveTask(task.id, direction: 1) } label: {
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11))
-                    .foregroundStyle(theme.textFaint)
-            }
-            .frame(width: 28, height: 28)
-
-            Button { showForwardSheet = true } label: {
-                Image(systemName: "arrow.right.circle")
-                    .font(.system(size: 14))
-                    .foregroundStyle(theme.textFaint)
-            }
-            .frame(width: 28, height: 28)
-
-            Button { showDeleteConfirm = true } label: {
-                Image(systemName: "trash")
-                    .font(.system(size: 13))
-                    .foregroundStyle(theme.textFaint)
-            }
-            .frame(width: 28, height: 28)
+    @ViewBuilder
+    private var statusBadge: some View {
+        if isDone {
+            badgePill(text: "Done", type: "done")
+        } else if isCancelled {
+            badgePill(text: "Skip", type: "neutral")
+        } else if isForwarded {
+            badgePill(text: "Fwd", type: "amber")
+        } else if priority == "A" {
+            badgePill(text: "Urgent", type: "coral")
         }
     }
 
-    private var textColor: Color {
-        switch task.status {
-        case "completed": return theme.statusCompleted
-        case "cancelled": return theme.textMuted
-        case "forwarded": return theme.textFaint
-        default: return theme.textPrimary
-        }
+    private func badgePill(text: String, type: String) -> some View {
+        Text(text)
+            .font(OutfitFont.font(weight: .bold, size: 10.5))
+            .padding(.horizontal, 9)
+            .padding(.vertical, 3)
+            .background(theme.badgeBg(for: type))
+            .foregroundStyle(theme.badgeText(for: type))
+            .clipShape(Capsule())
     }
 
-    private func priorityLabel(_ p: String) -> String {
-        switch p {
-        case "A": return "A — Vital"
-        case "B": return "B — Important"
-        default: return "C — Nice to do"
+    // MARK: - Edit
+
+    private func commitEdit() {
+        isEditing = false
+        let trimmed = editText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty && trimmed != task.text {
+            viewModel.updateTaskText(task.id, newText: trimmed)
         }
     }
 }

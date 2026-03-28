@@ -16,20 +16,26 @@
 		41B70DC864370103BD35E89C /* LocalStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D14D9A818FEFADE33395868 /* LocalStorageService.swift */; };
 		574AFF3099BECD5F8D11021E /* FirebaseSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3209369FE79015829DAF6BC0 /* FirebaseSyncService.swift */; };
 		E60F9BA06F78FC92EDE66E47 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C152B1A8FD778C9D2BD8C9 /* ContentView.swift */; };
-		F9FEDFD450FC5CF0910F9D48 /* MainPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791F2CC7E0F7E3C65BFBB57C /* MainPlannerView.swift */; };
-		26CA0A1B86EA47094DBACD65 /* DateHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39048EC4BF74F439D3CD7A8A /* DateHeaderView.swift */; };
-		D122DCD8A42A02322503B0F5 /* WeeklyHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F387D9B15250040D3867AC7 /* WeeklyHeatmapView.swift */; };
-		7391692B5D2A88F3122B8252 /* TaskSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D0DC8D8D54D5A774D7333DB /* TaskSummaryView.swift */; };
 		639B249A2C5CAB1C2BA36489 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FE2304994DC6C971F6FD5B /* TaskListView.swift */; };
 		DCB1138A0948FA435852884E /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E214A87482FD7B63A117542 /* TaskRowView.swift */; };
-		2DF0EF56C3A21CFC6EC6B329 /* AddTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA140DDC794D2A1B84E54B81 /* AddTaskView.swift */; };
 		62C97B4EE99D9388361CDEA0 /* DailyNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E440E56C33ACE4A705D8D46A /* DailyNotesView.swift */; };
 		F1BADF9041225B9350D4AC0A /* ForwardTaskSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DBFB18E8E1E00556ADA1FA1 /* ForwardTaskSheet.swift */; };
-		FB205DDA7D2ADF91AB1E616C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861E2DE289F4C52451EB0732 /* SettingsView.swift */; };
 		70C402ADEDD8B262796EE844 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928C485E3B73200539119443 /* ConfettiView.swift */; };
 		143CDFC5DEC9558707C28935 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE73B1D4BFFBB42954F59994 /* AppTheme.swift */; };
 		1417E573FDE4D7E9CE21523B /* DateHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EA05BFD26180709A9D9F77 /* DateHelpers.swift */; };
 		8C6175E7D4401E660D1F31DF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B16A58646BB87EB90D038977 /* Assets.xcassets */; };
+		AA01B1C1D1A2E3F4B5C6D7E8 /* TodayScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F1C1D1A2E3F4B5C6D7E8 /* TodayScreen.swift */; };
+		AA02B2C2D2A3E4F5B6C7D8E9 /* AppHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02F2C2D2A3E4F5B6C7D8E9 /* AppHeaderView.swift */; };
+		AA03B3C3D3A4E5F6B7C8D9EA /* DateStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03F3C3D3A4E5F6B7C8D9EA /* DateStripView.swift */; };
+		AA04B4C4D4A5E6F7B8C9DAEB /* StatCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04F4C4D4A5E6F7B8C9DAEB /* StatCardsView.swift */; };
+		AA05B5C5D5A6E7F8B9CADBED /* TaskGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05F5C5D5A6E7F8B9CADBED /* TaskGroupView.swift */; };
+		AA06B6C6D6A7E8F9BACBDCEE /* StreakCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA06F6C6D6A7E8F9BACBDCEE /* StreakCardView.swift */; };
+		AA07B7C7D7A8E9FABBCCDDFA /* HootTipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07F7C7D7A8E9FABBCCDDFA /* HootTipView.swift */; };
+		AA08B8C8D8A9EAFBBCCDDEFB /* AddTaskSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08F8C8D8A9EAFBBCCDDEFB /* AddTaskSheet.swift */; };
+		AA09B9C9D9AAEBFCBDCEDFFC /* FABButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA09F9C9D9AAEBFCBDCEDFFC /* FABButton.swift */; };
+		AA10BACAD0ABECFDBECFE0FD /* CalendarScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10FACAD0ABECFDBECFE0FD /* CalendarScreen.swift */; };
+		AA11BBCBD1ACEDFEBFD0E1FE /* ProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11FBCBD1ACEDFEBFD0E1FE /* ProfileScreen.swift */; };
+		AA12BCCCD2ADEEAFC0D1E2AB /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA12FCCCD2ADEEAFC0D1E2AB /* ToastView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,21 +48,27 @@
 		5D14D9A818FEFADE33395868 /* LocalStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LocalStorageService.swift"; sourceTree = "<group>"; };
 		3209369FE79015829DAF6BC0 /* FirebaseSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService.swift"; sourceTree = "<group>"; };
 		41C152B1A8FD778C9D2BD8C9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView.swift"; sourceTree = "<group>"; };
-		791F2CC7E0F7E3C65BFBB57C /* MainPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainPlannerView.swift"; sourceTree = "<group>"; };
-		39048EC4BF74F439D3CD7A8A /* DateHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateHeaderView.swift"; sourceTree = "<group>"; };
-		5F387D9B15250040D3867AC7 /* WeeklyHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeeklyHeatmapView.swift"; sourceTree = "<group>"; };
-		0D0DC8D8D54D5A774D7333DB /* TaskSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskSummaryView.swift"; sourceTree = "<group>"; };
 		23FE2304994DC6C971F6FD5B /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskListView.swift"; sourceTree = "<group>"; };
 		4E214A87482FD7B63A117542 /* TaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskRowView.swift"; sourceTree = "<group>"; };
-		BA140DDC794D2A1B84E54B81 /* AddTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AddTaskView.swift"; sourceTree = "<group>"; };
 		E440E56C33ACE4A705D8D46A /* DailyNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DailyNotesView.swift"; sourceTree = "<group>"; };
 		6DBFB18E8E1E00556ADA1FA1 /* ForwardTaskSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ForwardTaskSheet.swift"; sourceTree = "<group>"; };
-		861E2DE289F4C52451EB0732 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; sourceTree = "<group>"; };
 		928C485E3B73200539119443 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConfettiView.swift"; sourceTree = "<group>"; };
 		FE73B1D4BFFBB42954F59994 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppTheme.swift"; sourceTree = "<group>"; };
 		A6EA05BFD26180709A9D9F77 /* DateHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateHelpers.swift"; sourceTree = "<group>"; };
 		B16A58646BB87EB90D038977 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		71CCD365E3A654DA84DBA191 /* DailyPlanner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyPlanner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA01F1C1D1A2E3F4B5C6D7E8 /* TodayScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TodayScreen.swift"; sourceTree = "<group>"; };
+		AA02F2C2D2A3E4F5B6C7D8E9 /* AppHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppHeaderView.swift"; sourceTree = "<group>"; };
+		AA03F3C3D3A4E5F6B7C8D9EA /* DateStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateStripView.swift"; sourceTree = "<group>"; };
+		AA04F4C4D4A5E6F7B8C9DAEB /* StatCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatCardsView.swift"; sourceTree = "<group>"; };
+		AA05F5C5D5A6E7F8B9CADBED /* TaskGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskGroupView.swift"; sourceTree = "<group>"; };
+		AA06F6C6D6A7E8F9BACBDCEE /* StreakCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StreakCardView.swift"; sourceTree = "<group>"; };
+		AA07F7C7D7A8E9FABBCCDDFA /* HootTipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HootTipView.swift"; sourceTree = "<group>"; };
+		AA08F8C8D8A9EAFBBCCDDEFB /* AddTaskSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AddTaskSheet.swift"; sourceTree = "<group>"; };
+		AA09F9C9D9AAEBFCBDCEDFFC /* FABButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FABButton.swift"; sourceTree = "<group>"; };
+		AA10FACAD0ABECFDBECFE0FD /* CalendarScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CalendarScreen.swift"; sourceTree = "<group>"; };
+		AA11FBCBD1ACEDFEBFD0E1FE /* ProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProfileScreen.swift"; sourceTree = "<group>"; };
+		AA12FCCCD2ADEEAFC0D1E2AB /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ToastView.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,16 +145,22 @@
 			isa = PBXGroup;
 			children = (
 				41C152B1A8FD778C9D2BD8C9,
-				791F2CC7E0F7E3C65BFBB57C,
-				39048EC4BF74F439D3CD7A8A,
-				5F387D9B15250040D3867AC7,
-				0D0DC8D8D54D5A774D7333DB,
+				AA01F1C1D1A2E3F4B5C6D7E8,
+				AA02F2C2D2A3E4F5B6C7D8E9,
+				AA03F3C3D3A4E5F6B7C8D9EA,
+				AA04F4C4D4A5E6F7B8C9DAEB,
+				AA05F5C5D5A6E7F8B9CADBED,
+				AA06F6C6D6A7E8F9BACBDCEE,
+				AA07F7C7D7A8E9FABBCCDDFA,
+				AA08F8C8D8A9EAFBBCCDDEFB,
+				AA09F9C9D9AAEBFCBDCEDFFC,
+				AA10FACAD0ABECFDBECFE0FD,
+				AA11FBCBD1ACEDFEBFD0E1FE,
+				AA12FCCCD2ADEEAFC0D1E2AB,
 				23FE2304994DC6C971F6FD5B,
 				4E214A87482FD7B63A117542,
-				BA140DDC794D2A1B84E54B81,
 				E440E56C33ACE4A705D8D46A,
 				6DBFB18E8E1E00556ADA1FA1,
-				861E2DE289F4C52451EB0732,
 				928C485E3B73200539119443,
 			);
 			path = Views;
@@ -232,19 +250,25 @@
 				41B70DC864370103BD35E89C /* LocalStorageService.swift */,
 				574AFF3099BECD5F8D11021E /* FirebaseSyncService.swift */,
 				E60F9BA06F78FC92EDE66E47 /* ContentView.swift */,
-				F9FEDFD450FC5CF0910F9D48 /* MainPlannerView.swift */,
-				26CA0A1B86EA47094DBACD65 /* DateHeaderView.swift */,
-				D122DCD8A42A02322503B0F5 /* WeeklyHeatmapView.swift */,
-				7391692B5D2A88F3122B8252 /* TaskSummaryView.swift */,
 				639B249A2C5CAB1C2BA36489 /* TaskListView.swift */,
 				DCB1138A0948FA435852884E /* TaskRowView.swift */,
-				2DF0EF56C3A21CFC6EC6B329 /* AddTaskView.swift */,
 				62C97B4EE99D9388361CDEA0 /* DailyNotesView.swift */,
 				F1BADF9041225B9350D4AC0A /* ForwardTaskSheet.swift */,
-				FB205DDA7D2ADF91AB1E616C /* SettingsView.swift */,
 				70C402ADEDD8B262796EE844 /* ConfettiView.swift */,
 				143CDFC5DEC9558707C28935 /* AppTheme.swift */,
 				1417E573FDE4D7E9CE21523B /* DateHelpers.swift */,
+				AA01B1C1D1A2E3F4B5C6D7E8 /* TodayScreen.swift */,
+				AA02B2C2D2A3E4F5B6C7D8E9 /* AppHeaderView.swift */,
+				AA03B3C3D3A4E5F6B7C8D9EA /* DateStripView.swift */,
+				AA04B4C4D4A5E6F7B8C9DAEB /* StatCardsView.swift */,
+				AA05B5C5D5A6E7F8B9CADBED /* TaskGroupView.swift */,
+				AA06B6C6D6A7E8F9BACBDCEE /* StreakCardView.swift */,
+				AA07B7C7D7A8E9FABBCCDDFA /* HootTipView.swift */,
+				AA08B8C8D8A9EAFBBCCDDEFB /* AddTaskSheet.swift */,
+				AA09B9C9D9AAEBFCBDCEDFFC /* FABButton.swift */,
+				AA10BACAD0ABECFDBECFE0FD /* CalendarScreen.swift */,
+				AA11BBCBD1ACEDFEBFD0E1FE /* ProfileScreen.swift */,
+				AA12BCCCD2ADEEAFC0D1E2AB /* ToastView.swift */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
