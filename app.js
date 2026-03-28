@@ -404,6 +404,9 @@
                 if (t.calendarEventId) {
                     task.calendarEventId = t.calendarEventId;
                 }
+                if (t.originalStatus) {
+                    task.originalStatus = t.originalStatus;
+                }
                 return task;
             });
         }
@@ -1028,6 +1031,10 @@
 
         var wasAllComplete = isAllCompleted(srcDay);
 
+        // Preserve original status so cleanup can restore if needed
+        if (!task.originalStatus) {
+            task.originalStatus = task.status;
+        }
         task.status = 'forwarded';
         task.forwardedTo = targetDateStr;
 
@@ -1115,39 +1122,39 @@
         }
     }
 
-    // Cleanup: remove calendar events and duplicates that were incorrectly
-    // rolled over, and undo chained forwarding (Wed→Thu→Fri chains).
+    // Cleanup v3: Aggressively undo damage from buggy rollover.
+    // - Remove ALL forwarded copies from today that originated on past days
+    // - Remove forwarded calendar events from any day
+    // - Restore tasks on their original (source) days back to open
+    // - Remove duplicates
     function cleanupBadRollover() {
-        var cleanupKey = 'fcplanner_rollover_cleanup_v2';
+        var cleanupKey = 'fcplanner_rollover_cleanup_v3';
         if (localStorage.getItem(cleanupKey)) return false;
 
         var changed = false;
         var today = getTodayStr();
-
-        // Pass 1: Undo chained forwarding.
-        // Find tasks on past days that were forwarded by buggy rollover.
-        // If the original task was completed/cancelled but rollover saw a
-        // stale 'open' copy, the forwarded copy shouldn't exist.
-        // Also collect all forwarded-to-today tasks so we can deduplicate.
-        var forwardedTexts = {}; // text → { originalDate, originalStatus }
-
-        // First, scan all past days to find tasks that were incorrectly forwarded
         var sortedDates = Object.keys(data.days).sort();
+
+        // Step 1: Build a map of all tasks on past days that were marked 'forwarded'.
+        // These are the originals whose status was overwritten by buggy rollover.
+        // key = text.trim().toLowerCase(), value = [{ dateStr, taskIndex }]
+        var forwardedSources = {};
         sortedDates.forEach(function (dateStr) {
+            if (dateStr >= today) return;
             var day = data.days[dateStr];
             if (!day || !day.tasks) return;
-            day.tasks.forEach(function (t) {
+            day.tasks.forEach(function (t, idx) {
                 if (t.status === 'forwarded' && t.forwardedTo) {
                     var key = t.text.trim().toLowerCase();
-                    // Track the earliest source date for each forwarded task
-                    if (!forwardedTexts[key] || dateStr < forwardedTexts[key].sourceDate) {
-                        forwardedTexts[key] = { sourceDate: dateStr };
-                    }
+                    if (!forwardedSources[key]) forwardedSources[key] = [];
+                    forwardedSources[key].push({ dateStr: dateStr, task: t });
                 }
             });
         });
 
-        // Pass 2: Clean up each day
+        // Step 2: On today, remove tasks that are forwarded copies from past days.
+        // Keep tasks that the user actually created today (no matching source).
+        // Also remove forwarded calendar events and duplicates from ALL days.
         Object.keys(data.days).forEach(function (dateStr) {
             var day = data.days[dateStr];
             if (!day || !day.tasks) return;
@@ -1159,7 +1166,8 @@
                 var t = day.tasks[i];
                 var key = t.text.trim().toLowerCase();
 
-                // Remove forwarded calendar events (time prefix, no calendarEventId)
+                // Remove forwarded calendar events on any day
+                // (time prefix like "10:00 AM —" without calendarEventId)
                 var isForwardedCalEvent = !t.calendarEventId &&
                     /^\d{1,2}:\d{2}\s*(AM|PM)\s*[—–-]/.test(t.text);
                 if (isForwardedCalEvent && t.status !== 'completed' && t.status !== 'cancelled') {
@@ -1167,36 +1175,13 @@
                     continue;
                 }
 
-                // On today: remove tasks that were chain-forwarded from 2+ days ago
-                // (these are copies that shouldn't exist — the original is on an older day)
-                if (dateStr === today && t.status === 'open' && forwardedTexts[key]) {
-                    var src = forwardedTexts[key].sourceDate;
-                    // If the source is more than 1 day old, this is a chain-forwarded copy
-                    var srcDate = new Date(src);
-                    var todayDate = new Date(today);
-                    var daysDiff = Math.round((todayDate - srcDate) / (1000 * 60 * 60 * 24));
-                    if (daysDiff > 1) {
-                        // Check if this task was forwarded through intermediate days
-                        // (chain: source→intermediate→today)
-                        var hasChain = false;
-                        for (var dd = addDays(src, 1); dd < today; dd = addDays(dd, 1)) {
-                            var midDay = data.days[dd];
-                            if (midDay && midDay.tasks.some(function (mt) {
-                                return mt.text.trim().toLowerCase() === key &&
-                                    mt.status === 'forwarded';
-                            })) {
-                                hasChain = true;
-                                break;
-                            }
-                        }
-                        if (hasChain) {
-                            changed = true;
-                            continue;
-                        }
-                    }
+                // On today: remove open tasks that have a forwarded source on a past day
+                if (dateStr === today && t.status === 'open' && forwardedSources[key]) {
+                    changed = true;
+                    continue;
                 }
 
-                // Remove duplicate tasks (same text on same day, keep first)
+                // Remove duplicate open tasks on same day
                 if (seen[key] && t.status === 'open') {
                     changed = true;
                     continue;
@@ -1207,7 +1192,7 @@
 
             if (cleanTasks.length !== day.tasks.length) {
                 day.tasks = cleanTasks;
-                // Renumber tasks within each priority
+                // Renumber within each priority
                 ['A', 'B', 'C'].forEach(function (p) {
                     var num = 1;
                     day.tasks.forEach(function (t) {
@@ -1217,36 +1202,18 @@
             }
         });
 
-        // Pass 3: Undo incorrect 'forwarded' status on past days where the
-        // forwarded copy on today was just removed. Restore them to 'open'
-        // on their original day so history looks correct.
+        // Step 3: Restore forwarded tasks on past days back to their original status.
+        // Use originalStatus if stored, otherwise restore as 'open'.
         sortedDates.forEach(function (dateStr) {
             if (dateStr >= today) return;
             var day = data.days[dateStr];
             if (!day || !day.tasks) return;
             day.tasks.forEach(function (t) {
-                if (t.status === 'forwarded' && t.forwardedTo) {
-                    var targetDay = data.days[t.forwardedTo];
-                    var key = t.text.trim().toLowerCase();
-                    // If the target day no longer has this task, the forward was undone
-                    var existsInTarget = targetDay && targetDay.tasks.some(function (tt) {
-                        return tt.text.trim().toLowerCase() === key &&
-                            tt.status !== 'forwarded';
-                    });
-                    if (!existsInTarget) {
-                        // Check if it exists on today instead (may have been
-                        // forwarded directly to today after chain removal)
-                        var todayDay = data.days[today];
-                        var existsInToday = todayDay && todayDay.tasks.some(function (tt) {
-                            return tt.text.trim().toLowerCase() === key;
-                        });
-                        if (!existsInToday) {
-                            // Restore to open on original day
-                            t.status = 'open';
-                            t.forwardedTo = null;
-                            changed = true;
-                        }
-                    }
+                if (t.status === 'forwarded') {
+                    t.status = t.originalStatus || 'open';
+                    t.forwardedTo = null;
+                    delete t.originalStatus;
+                    changed = true;
                 }
             });
         });
@@ -1255,7 +1222,7 @@
 
         if (changed) {
             saveData();
-            console.log('Cleanup v2: removed chain-forwarded tasks, calendar events, and duplicates');
+            console.log('Cleanup v3: restored tasks to original days, removed bad forwards and duplicates');
         }
         return changed;
     }
