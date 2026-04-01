@@ -1737,9 +1737,10 @@
         document.getElementById('new-task-text').addEventListener('paste', function (e) {
             var clipboardData = e.clipboardData || window.clipboardData;
             var pasted = clipboardData.getData('text');
-            // Match lines starting with bullet characters: •, -, *, ●, ◦, ▪, ▸, or numbered like "1." "2)"
             var lines = pasted.split(/\r?\n/);
             var bulletPattern = /^\s*(?:[•\-\*●◦▪▸►‣⁃]|\d+[\.\):])\s+/;
+
+            // First try: extract bulleted/numbered items
             var items = [];
             for (var i = 0; i < lines.length; i++) {
                 if (bulletPattern.test(lines[i])) {
@@ -1747,6 +1748,16 @@
                     if (text) items.push(text);
                 }
             }
+
+            // Fallback: if no bullets found, treat each non-empty line as a task
+            if (items.length <= 1) {
+                items = [];
+                for (var k = 0; k < lines.length; k++) {
+                    var line = lines[k].trim();
+                    if (line) items.push(line);
+                }
+            }
+
             if (items.length > 1) {
                 e.preventDefault();
                 var priority = document.getElementById('new-task-priority').value;
