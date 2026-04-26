@@ -80,6 +80,8 @@
       stop();
       debugMode = true;
     }
+    // Bypass EMA so debug calls land exactly where requested.
+    smoothed = null;
     emit({ lat, lon, accuracy: 5, altitude: null, altitudeAccuracy: null, ts: Date.now(), source: 'debug' });
   }
 

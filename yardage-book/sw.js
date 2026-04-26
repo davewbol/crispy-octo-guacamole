@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'yb-shell-v1';
+const CACHE_VERSION = 'yb-shell-v2';
 const SHELL = [
   './',
   './index.html',
