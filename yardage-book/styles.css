@@ -1,0 +1,226 @@
+:root {
+  --paper:        #f3ead4;
+  --paper-edge:   #ddd1ad;
+  --ink:          #1a1a1a;
+  --ink-dim:      #6a6a6a;
+  --orange:       #e87a2b;
+  --orange-dim:   #c8651e;
+  --fairway:      #c7d99a;
+  --fairway-rim:  #98ad6b;
+  --green:        #7fb37d;
+  --green-rim:    #2d5a2a;
+  --bunker:       #f0e2bd;
+  --bunker-rim:   #b89c5d;
+  --water:        #b9dbe6;
+  --water-rim:    #6a9eb0;
+  --tree:         #6a8a55;
+  --tree-rim:     #3f5832;
+  --player:       #2870e8;
+  --pin:          #e87a2b;
+  --bg:           #0d0d0d;
+  --hud-fg:       #fff;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--hud-fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.screen.is-active {
+  display: flex;
+}
+
+.hole-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+  background: var(--bg);
+  color: var(--hud-fg);
+}
+
+.hole-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.hole-badge__num {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--orange);
+}
+
+.hole-badge__par {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+  margin-top: 2px;
+}
+
+.btn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn--ghost {
+  width: 44px;
+  height: 44px;
+  font-size: 28px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+}
+
+.btn--ghost:active { background: rgba(255,255,255,0.12); }
+
+#btn-prev-hole { margin-left: auto; }
+
+.page-frame {
+  flex: 1;
+  min-height: 0;
+  background: var(--paper);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.page-frame svg.yb-page {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--paper);
+}
+
+/* yardage-book page primitive styling */
+.yb-fairway     { fill: var(--fairway);  stroke: var(--fairway-rim); stroke-width: 1.2; opacity: 0.95; }
+.yb-green       { fill: var(--green);    stroke: var(--green-rim);   stroke-width: 1.6; }
+.yb-bunker      { fill: var(--bunker);   stroke: var(--bunker-rim);  stroke-width: 1.2; }
+.yb-water       { fill: var(--water);    stroke: var(--water-rim);   stroke-width: 1.2; opacity: 0.92; }
+.yb-tree        { fill: var(--tree);     stroke: var(--tree-rim);    stroke-width: 1; opacity: 0.85; }
+
+.yb-arc         { fill: none; stroke: var(--orange); stroke-width: 0.8; stroke-dasharray: 3 3; opacity: 0.55; }
+.yb-pin         { fill: var(--pin); }
+.yb-pin-ref     { font-family: Georgia, serif; font-weight: 700; fill: var(--orange); font-size: 10px; }
+.yb-player      { fill: var(--player); stroke: #fff; stroke-width: 1.5; }
+.yb-line-of-play{ stroke: var(--ink); stroke-width: 0.6; stroke-dasharray: 2 4; opacity: 0.5; fill: none; }
+
+.yb-tick        { stroke: var(--ink); stroke-width: 0.7; opacity: 0.7; }
+.yb-tick-major  { stroke: var(--ink); stroke-width: 1; }
+.yb-scale-from  { font-family: Georgia, serif; font-size: 10px; fill: var(--ink); }
+.yb-scale-to    { font-family: Georgia, serif; font-size: 10px; fill: var(--orange-dim); }
+
+.yb-label-from  { font-family: Georgia, serif; font-weight: 700; font-size: 10px; fill: var(--ink); }
+.yb-label-to    { font-family: Georgia, serif; font-weight: 700; font-size: 10px; fill: var(--orange-dim); }
+.yb-label-dot   { fill: var(--ink); }
+
+.yb-badge-num   { font-family: Georgia, serif; font-weight: 700; font-size: 64px; fill: var(--orange); }
+.yb-badge-meta  { font-family: Georgia, serif; font-weight: 700; font-size: 10px; letter-spacing: 0.06em; fill: var(--orange-dim); }
+
+.yb-compass     { fill: var(--paper); stroke: var(--ink); stroke-width: 1; }
+.yb-compass-n   { fill: var(--orange); }
+.yb-compass-txt { font-family: Georgia, serif; font-size: 8px; fill: var(--ink); }
+
+.yb-tee-inset   { fill: var(--paper); stroke: var(--ink); stroke-width: 0.8; }
+.yb-tee-row     { font-family: Georgia, serif; font-size: 9px; fill: var(--ink); }
+.yb-tee-row-name{ font-weight: 700; }
+
+.distance-hud {
+  background: var(--bg);
+  color: var(--hud-fg);
+  padding: 10px 16px max(14px, env(safe-area-inset-bottom)) 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.hud-pin {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1;
+}
+
+.hud-pin__yards {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: clamp(56px, 14vh, 96px);
+  letter-spacing: -0.02em;
+}
+
+.hud-pin__unit {
+  font-size: 14px;
+  color: var(--ink-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hud-playslike {
+  font-size: 14px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.hud-playslike[hidden] { display: none; }
+
+.hud-playslike__arrow { color: var(--orange); margin-left: 2px; }
+
+.hud-fcb {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-fcb > span {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 16px;
+}
+
+.hud-fcb label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+}

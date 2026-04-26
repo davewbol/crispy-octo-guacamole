@@ -1,0 +1,14 @@
+{
+  "name": "My Yardage Book",
+  "short_name": "Yardage Book",
+  "description": "A personal yardage book for the courses you actually play.",
+  "scope": "/yardage-book/",
+  "start_url": "/yardage-book/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

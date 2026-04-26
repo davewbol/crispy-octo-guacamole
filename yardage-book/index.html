@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="My Yardage Book" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>My Yardage Book</title>
+</head>
+<body>
+  <main id="app" class="app">
+    <section id="hole-screen" class="screen screen--hole" aria-label="Hole">
+      <header class="hole-header">
+        <div class="hole-badge">
+          <span class="hole-badge__num" data-bind="hole-num">—</span>
+          <span class="hole-badge__par" data-bind="hole-par">PAR —</span>
+        </div>
+        <button class="btn btn--ghost" id="btn-prev-hole" aria-label="Previous hole">‹</button>
+        <button class="btn btn--ghost" id="btn-next-hole" aria-label="Next hole">›</button>
+      </header>
+
+      <div class="page-frame" id="page-frame">
+        <!-- SVG yardage-book page injected here by page.js -->
+      </div>
+
+      <footer class="distance-hud" aria-label="Distances">
+        <div class="hud-pin">
+          <span class="hud-pin__yards" data-bind="dist-pin">—</span>
+          <span class="hud-pin__unit">yds</span>
+        </div>
+        <div class="hud-playslike" data-bind="dist-playslike-row" hidden>
+          plays <span data-bind="dist-playslike">—</span>
+          <span class="hud-playslike__arrow" data-bind="dist-playslike-arrow"></span>
+        </div>
+        <div class="hud-fcb">
+          <span><label>F</label><span data-bind="dist-front">—</span></span>
+          <span><label>C</label><span data-bind="dist-center">—</span></span>
+          <span><label>B</label><span data-bind="dist-back">—</span></span>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <!-- Module load order: utilities → renderer → fixtures → app boot -->
+  <script src="js/geo.js"></script>
+  <script src="js/elevation.js"></script>
+  <script src="js/geolocation.js"></script>
+  <script src="js/wake-lock.js"></script>
+  <script src="js/page.js"></script>
+  <script src="js/fixtures/test-course.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
